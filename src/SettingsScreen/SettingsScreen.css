@@ -97,3 +97,86 @@
   background: #fff;
   padding-bottom: 16px;
 }
+.tab-bar {
+  background: #f8f9fa;
+  border-style: solid;
+  border-color: #e9ecef;
+  border-width: 1px 0 0 0;
+  padding: 8px 0 34px 0;
+  display: flex;
+  flex-direction: row;  /* ✅ 반드시 row */
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 83px;
+  position: fixed;      /* ✅ 항상 하단 고정 */
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+}
+
+.tab-bar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex: 1;              /* ✅ 네 개가 같은 너비 차지 */
+}
+.religion-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;    /* ✅ 줄바꿈 금지 */
+  word-break: keep-all;   /* ✅ 한 단어로 표시 */
+  padding: 15px 20px;     /* 필요에 따라 조정 */
+  border-radius: 24px;
+  border: 2px solid #e5e5e5;
+  font-size: 15px;
+  margin-right: 5px;
+  margin-bottom: 14px;
+  background: #f8f9fa;
+  cursor: pointer;
+  min-width: 60px;        /* 버튼 최소 너비 */
+  min-height: 40px;       /* 버튼 최소 높이 */
+  transition: background 0.2s, border 0.2s;
+}
+
+.religion-option.selected {
+  background: #5279ff;
+  color: #fff;
+  border: 2px solid #5279ff;
+}
+.diet-group {
+  display: flex;
+  flex-direction: row;
+  gap: 14px; /* 버튼 간격 */
+  margin-top: 18px;
+}
+
+.diet-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  color: #222;
+  font-size: 15px;
+  font-family: "Pretendard", "Inter", sans-serif;
+  padding: 10px 10px;
+  border-radius: 32px;
+  border: 2px solid #e0e3e8;
+  white-space: nowrap;        /* ✅ 줄바꿈 금지 */
+  word-break: keep-all;       /* ✅ 단어 분리 X */
+  min-width: 70px;
+  min-height: 50px;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+
+.diet-option.selected {
+  background: #5279ff;
+  color: #fff;
+  border: 2px solid #5279ff;
+  font-weight: 600;
+}
+
