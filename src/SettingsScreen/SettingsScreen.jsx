@@ -1,6 +1,6 @@
 import "./SettingsScreen.css";
 
-export const SettingsScreen = ({ className, ...props }) => {
+export const SettingsScreen = ({ onNavigate, className, ...props }) => {
   return (
     <div className={"settings-screen " + className}>
       <div className="status-bar">
@@ -136,7 +136,7 @@ export const SettingsScreen = ({ className, ...props }) => {
           </div>
         </div>
         <div className="tab-bar">
-          <div className="home-tab">
+          <div className="home-tab" onClick={() => onNavigate("home")}>
             <img className="home" src="home0.svg" />
             <div className="div15">홈 </div>
           </div>

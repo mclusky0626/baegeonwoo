@@ -1,6 +1,6 @@
 import "./HomeScreen.css";
 
-export const HomeScreen = ({ className, ...props }) => {
+export const HomeScreen = ({onNavigate, className, ...props }) => {
   return (
     <div className={"home-screen " + className}>
       <div className="status-bar">
@@ -41,7 +41,7 @@ export const HomeScreen = ({ className, ...props }) => {
               </div>
               <img className="rice-bowl" src="rice-bowl0.svg" />
             </div>
-            <div className="warning-item">
+            <div className="warning-item">  
               <div className="status-icon2">
                 <img className="alert-triangle" src="alert-triangle0.svg" />
               </div>
@@ -108,22 +108,22 @@ export const HomeScreen = ({ className, ...props }) => {
           </div>
         </div>
       </div>
-      <div className="tab-bar">
-        <div className="home-tab">
+       <div className="tab-bar">
+        <div className="home-tab" onClick={() => onNavigate("home")}>
           <img className="home" src="home0.svg" />
-          <div className="div9">홈 </div>
+          <div className="div9">홈</div>
         </div>
-        <div className="calendar-tab">
+        <div className="calendar-tab" onClick={() => onNavigate("week")}>
           <img className="calendar2" src="calendar1.svg" />
-          <div className="div10">급식표 </div>
+          <div className="div10">급식표</div>
         </div>
-        <div className="settings-tab">
+        <div className="settings-tab" onClick={() => onNavigate("settings")}>
           <img className="settings2" src="settings1.svg" />
-          <div className="div10">설정 </div>
+          <div className="div10">설정</div>
         </div>
-        <div className="profile-tab">
+        <div className="profile-tab" onClick={() => onNavigate("frame")}>
           <img className="user" src="user0.svg" />
-          <div className="div10">내정보 </div>
+          <div className="div10">내정보</div>
         </div>
       </div>
     </div>

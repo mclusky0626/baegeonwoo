@@ -1,20 +1,33 @@
 import "./Frame.css";
+import black from "../imgs/black.png"
+import edit from "../imgs/edit.svg";
+import knife from "../imgs/knifeandafork.svg"
+import Vector from "../imgs/Vector.png";
+import ok from "../imgs/ok.png";
+import no from "../imgs/no.png";
+import warn from "../imgs/warn.png";
+import lock from "../imgs/lock.png";
+import lang from "../imgs/lang.png";
+import bell from "../imgs/bell.png";
+import check from "../imgs/checkmate.svg"
+//why so serious?  why so serious  why so serious
 
-export const Frame = ({ className, ...props }) => {
+
+export const Frame = ({ onNavigate, className, ...props }) => {
   return (
     <div className={"frame " + className}>
       <div className="body">
         <div className="div">
           <div className="main">
             <div className="section">
-              <img className="img" src="img0.png" />
+              <img className="img" src={black} />
               <div className="div2">
                 <div className="div3">
                   <div className="div4">김건우 </div>
                   <div className="button">
                     <div className="i">
                       <div className="svg">
-                        <img className="frame2" src="frame0.svg" />
+                        <img className="frame2" src={edit} style={{ width: "200%", height: "200%" }} />
                       </div>
                     </div>
                   </div>
@@ -24,7 +37,7 @@ export const Frame = ({ className, ...props }) => {
                   <div className="button2">
                     <div className="i2">
                       <div className="svg2">
-                        <img className="frame3" src="frame1.svg" />
+                        <img className="frame3" src={edit} style={{ width: "170%", height: "170%" }}/>
                       </div>
                     </div>
                   </div>
@@ -33,7 +46,7 @@ export const Frame = ({ className, ...props }) => {
                   <div className="button3">
                     <div className="i2">
                       <div className="svg2">
-                        <img className="frame4" src="frame2.svg" />
+                        <img className="frame4" src={edit} style={{ width: "170%", height: "170%" }}/>
                       </div>
                     </div>
                   </div>
@@ -43,13 +56,13 @@ export const Frame = ({ className, ...props }) => {
             <div className="section2">
               <div className="div8">
                 <div className="frame5">
-                  <img className="frame6" src="frame4.svg" />
+                  <img className="frame6" src={knife} />
                 </div>
                 <div className="div9">급식 필터 기준 </div>
                 <div className="button4">
                   <div className="i3">
                     <div className="svg3">
-                      <img className="frame7" src="frame5.svg" />
+                      <img className="frame7" src={knife} />
                     </div>
                   </div>
                   <div className="div10">편집 </div>
@@ -73,22 +86,22 @@ export const Frame = ({ className, ...props }) => {
             <div className="section3">
               <div className="div8">
                 <div className="frame8">
-                  <img className="frame9" src="frame7.svg" />
+                  <img className="frame9" src={Vector} />
                 </div>
                 <div className="div21">나의 급식 통계 </div>
               </div>
               <div className="div22">
                 <div className="_70">70% </div>
                 <div className="frame10">
-                  <img className="frame11" src="frame9.svg" />
+                  <img className="frame11" src={ok} />
                 </div>
                 <div className="_10">10% </div>
                 <div className="frame12">
-                  <img className="frame13" src="frame11.svg" />
+                  <img className="frame13" src={warn} />
                 </div>
                 <div className="_20">20% </div>
                 <div className="frame14">
-                  <img className="frame15" src="frame13.svg" />
+                  <img className="frame15" src={no} />
                 </div>
               </div>
               <div className="button5">
@@ -98,7 +111,7 @@ export const Frame = ({ className, ...props }) => {
             <div className="section4">
               <div className="div24">
                 <div className="frame16">
-                  <img className="frame17" src="frame15.svg" />
+                  <img className="frame17" src={lang} />
                 </div>
                 <div className="div25">언어 설정 </div>
                 <div className="span">
@@ -112,7 +125,7 @@ export const Frame = ({ className, ...props }) => {
             <div className="section5">
               <div className="div8">
                 <div className="frame5">
-                  <img className="frame18" src="frame17.svg" />
+                  <img className="frame18" src={bell} />
                 </div>
                 <div className="div28">알림 설정 </div>
                 <div className="span2">
@@ -124,7 +137,7 @@ export const Frame = ({ className, ...props }) => {
                   <div className="div30">급식 변경 시 알림 받기 </div>
                   <div className="input">
                     <div className="svg4">
-                      <img className="frame19" src="frame18.svg" />
+                      <img className="frame19" src={check} />
                     </div>
                   </div>
                 </div>
@@ -132,7 +145,7 @@ export const Frame = ({ className, ...props }) => {
                   <div className="div31">피드백 요청 알림 </div>
                   <div className="input">
                     <div className="svg4">
-                      <img className="frame20" src="frame19.svg" />
+                      <img className="frame20" src={check} />
                     </div>
                   </div>
                 </div>
@@ -141,7 +154,7 @@ export const Frame = ({ className, ...props }) => {
             <div className="section6">
               <div className="div8">
                 <div className="frame16">
-                  <img className="frame21" src="frame21.svg" />
+                  <img className="frame21" src={lock} />
                 </div>
                 <div className="div25">계정 설정 </div>
               </div>
@@ -173,23 +186,25 @@ export const Frame = ({ className, ...props }) => {
             </div>
           </div>
           <div className="tab-bar">
-            <div className="home-tab">
+            <div className="home-tab" onClick={() => onNavigate("home")}>
               <img className="home" src="home0.svg" />
-              <div className="div37">홈 </div>
+              <div className="div15">홈</div>
             </div>
-            <div className="calendar-tab">
+            <div className="calendar-tab" onClick={() => onNavigate("week")}>
               <img className="calendar" src="calendar0.svg" />
-              <div className="div37">급식표 </div>
+              <div className="div15">급식표</div>
             </div>
-            <div className="settings-tab">
+            <div className="settings-tab" onClick={() => onNavigate("settings")}>
               <img className="settings" src="settings0.svg" />
-              <div className="div38">설정 </div>
+              <div className="div16">설정</div>
             </div>
-            <div className="profile-tab">
+            <div className="profile-tab" onClick={() => onNavigate("frame")}>
               <img className="user" src="user0.svg" />
-              <div className="div39">내정보 </div>
+              <div className="div15">내정보</div>
             </div>
           </div>
+
+          <div className="divider"></div>
         </div>
       </div>
     </div>
