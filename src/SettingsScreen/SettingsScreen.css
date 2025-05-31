@@ -1,873 +1,99 @@
-.settings-screen,
-.settings-screen * {
-  box-sizing: border-box;
-}
 .settings-screen {
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  height: 1145px;
-  position: relative;
+  padding: 20px;
+  background: #fff;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
-.settings-screen .status-bar {
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 44px;
-  position: relative;
+.header .div {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
 }
-.settings-screen ._9-41 {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 17px;
-  line-height: 20.4px;
-  font-weight: 600;
-  position: relative;
+.school-section, .religion-section, .diet-section, .allergy-section {
+  margin-bottom: 28px;
 }
-.settings-screen .status-icons {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .signal {
-  flex-shrink: 0;
-  width: 18px;
-  height: 12px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .wifi {
-  flex-shrink: 0;
-  width: 15px;
-  height: 11px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .battery {
-  flex-shrink: 0;
-  width: 24px;
-  height: 12px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .header {
-  border-style: solid;
-  border-color: #f5f5f5;
-  border-width: 0px 0px 1px 0px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 56px;
-  position: relative;
-}
-.settings-screen .arrow-left {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .div {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 17px;
-  line-height: 20.4px;
-  font-weight: 600;
-  position: relative;
-}
-.settings-screen .frame {
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-}
-.settings-screen .scroll-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex: 1;
-  position: relative;
-}
-.settings-screen .content {
-  padding: 20px 20px 100px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 943px;
-  position: relative;
-}
-.settings-screen .school-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .div2 {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 16px;
-  line-height: 19.2px;
-  font-weight: 600;
-  position: relative;
-  align-self: stretch;
-}
-.settings-screen .school-input {
-  background: #f8f9fa;
+.school-input-box, .allergy-input-box {
+  width: 80%;
+  padding: 8px 12px;
+  border: 1px solid #e9ecef;
   border-radius: 8px;
-  border-style: solid;
-  border-color: #e9ecef;
-  border-width: 1px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 48px;
-  position: relative;
-}
-.settings-screen .div3 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
   font-size: 16px;
-  line-height: 19.2px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
 }
-.settings-screen .search {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen ._2 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 400;
-  position: relative;
-  align-self: stretch;
-}
-.settings-screen .religion-section {
+.religion-options, .diet-options {
   display: flex;
-  flex-direction: column;
   gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
+  margin-top: 10px;
 }
-.settings-screen .religion-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .div4 {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
+.religion-option, .diet-option {
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: 1px solid #ddd;
+  cursor: pointer;
   font-size: 16px;
-  line-height: 19.2px;
-  font-weight: 600;
-  position: relative;
-}
-.settings-screen .div5 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 400;
-  position: relative;
-}
-.settings-screen .religion-options {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .islam {
-  background: #e3f2fd;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .div6 {
-  color: #1976d2;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .hindu {
-  background: #f3e5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .div7 {
-  color: #7b1fa2;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .buddhism {
-  background: #fff3e0;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .div8 {
-  color: #f57c00;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .christianity {
-  background: #e8f5e8;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .div9 {
-  color: #388e3c;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .none {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .div10 {
-  color: #757575;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .div11 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 12px;
-  line-height: 14.4px;
-  font-weight: 400;
-  position: relative;
-  align-self: stretch;
-}
-.settings-screen .diet-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .diet-options {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .normal {
-  background: #e3f2fd;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .vegan {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .lacto-ovo {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .pesco {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .other {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .allergy-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .allergy-input {
   background: #f8f9fa;
-  border-radius: 8px;
-  border-style: solid;
-  border-color: #e9ecef;
-  border-width: 1px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 48px;
-  position: relative;
+  user-select: none;
+  transition: all .2s;
 }
-.settings-screen .plus {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .selected-allergies {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .milk-allergy {
-  background: #ffebee;
-  border-radius: 16px;
-  padding: 0px 12px 0px 12px;
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 32px;
-  position: relative;
-}
-.settings-screen .div12 {
-  color: #c62828;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 12px;
-  line-height: 14.4px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .x {
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .egg-allergy {
-  background: #fff3e0;
-  border-radius: 16px;
-  padding: 0px 12px 0px 12px;
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 32px;
-  position: relative;
-}
-.settings-screen .div13 {
-  color: #e65100;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 12px;
-  line-height: 14.4px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .x2 {
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .wheat-allergy {
-  background: #f3e5f5;
-  border-radius: 16px;
-  padding: 0px 12px 0px 12px;
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 32px;
-  position: relative;
-}
-.settings-screen .div14 {
-  color: #7b1fa2;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 12px;
-  line-height: 14.4px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .x3 {
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .medication-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .medication-options {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .cold-medicine {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .pain-relief {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .antibiotics {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .no-medicine {
-  background: #e8f5e8;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .language-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .language-options {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .korean {
-  background: #e3f2fd;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .english {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .english2 {
-  color: #757575;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .chinese {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .vietnamese {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 0px 16px 0px 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 36px;
-  position: relative;
-}
-.settings-screen .ti-ng-vi-t {
-  color: #757575;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 16.8px;
-  font-weight: 500;
-  position: relative;
-}
-.settings-screen .tab-bar {
-  background: #f8f9fa;
-  border-style: solid;
-  border-color: #e9ecef;
-  border-width: 1px 0px 0px 0px;
-  padding: 8px 0px 34px 0px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  width: 375px;
-  height: 83px;
-  position: relative;
-}
-.settings-screen .home-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .home {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .div15 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 10px;
-  line-height: 12px;
-  font-weight: 400;
-  position: relative;
-}
-.settings-screen .calendar-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .calendar {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .settings-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .settings {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .div16 {
-  color: #007aff;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 10px;
-  line-height: 12px;
-  font-weight: 600;
-  position: relative;
-}
-.settings-screen .profile-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.settings-screen .user {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.settings-screen .bottom-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  width: 375px;
-  position: relative;
-}
-.settings-screen .save-button {
+.religion-option.selected, .diet-option.selected {
   background: #007aff;
-  padding: 16px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 56px;
-  position: relative;
+  color: #fff;
+  border-color: #007aff;
 }
-.settings-screen .div17 {
-  color: #ffffff;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 17px;
-  line-height: 20.4px;
-  font-weight: 600;
-  position: relative;
+.allergy-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.plus-btn {
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.selected-allergies {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.allergy-badge {
+  background: #f5c6cb;
+  color: #721c24;
+  border-radius: 16px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+}
+.remove-btn {
+  background: none;
+  color: #721c24;
+  border: none;
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.save-button {
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 36px;
+  font-size: 18px;
+  font-weight: 700;
+  width: 100%;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.save-button:hover {
+  background: #005bb5;
+}
+.bottom-section {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-bottom: 16px;
 }
