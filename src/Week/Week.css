@@ -223,7 +223,7 @@
   position: relative;
 }
 .week .chart-visual {
-  background: #000000;
+  
   border-radius: 60px;
   display: flex;
   flex-direction: row;

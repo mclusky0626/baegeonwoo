@@ -1,6 +1,20 @@
 import "./Week.css";
+import calander from "../imgs/CCC.png"
+import chart from "../imgs/chart.png"
+import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 
 export const Week = ({ className, ...props }) => {
+
+const data = [
+  { label: "가능", value: 63, count: 15, color: "#4CAF50" },
+  { label: "주의", value: 15, count: 4, color: "#FFC107" },
+  { label: "제외", value: 22, count: 5, color: "#F44336" },
+];
+
+
+const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // 각각 초록, 노랑, 빨강
+
+
   return (
     <div className={"week " + className}>
       <div className="status-bar">
@@ -12,53 +26,69 @@ export const Week = ({ className, ...props }) => {
         </div>
       </div>
       <div className="header">
-        <img className="arrow-left" src="arrow-left0.svg" />
+
         <div className="div">주간 급식 리포트 </div>
-        <img className="download" src="download0.svg" />
+
       </div>
       <div className="content-container">
         <div className="content">
           <div className="week-period">
             <div className="calendar-icon">
-              <img className="calendar-range" src="calendar-range0.svg" />
+              <img className="calendar-range" src={calander} />
               <div className="div2">이번 주 급식 요약 </div>
             </div>
             <div className="_5-27-31-5">5월 27일 ~ 31일 (5일간) </div>
           </div>
           <div className="stats-overview">
             <div className="stats-header">
-              <img className="pie-chart" src="pie-chart0.svg" />
+              <img className="pie-chart" src={chart}   />
               <div className="div3">섭취 가능 식단 비율 </div>
             </div>
-            <div className="chart-container">
-              <div className="chart-visual">
-                <div className="chart-center">
-                  <div className="_63">63% </div>
-                  <div className="div4">섭취 가능 </div>
-                </div>
-              </div>
-              <div className="chart-legend">
-                <div className="safe-legend">
-                  <div className="frame"></div>
-                  <div className="_632">가능 63% </div>
-                  <div className="_15">(15개) </div>
-                </div>
-                <div className="warning-legend">
-                  <div className="frame2"></div>
-                  <div className="_152">주의 15% </div>
-                  <div className="_4">(4개) </div>
-                </div>
-                <div className="restricted-legend">
-                  <div className="frame3"></div>
-                  <div className="_22">제외 22% </div>
-                  <div className="_5">(5개) </div>
-                </div>
-              </div>
+           <div className="chart-container" style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+  {/* 차트 */}
+  <PieChart width={250} height={200}>
+    <Pie
+      data={data}
+      cx="50%"
+      cy="50%"
+      innerRadius={60}
+      outerRadius={80}
+      dataKey="value"
+      labelLine={false}
+      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+    >
+      {data.map((entry, index) => (
+        <Cell key={`cell-${index}`} fill={entry.color} />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+
+  {/* 오른쪽 텍스트 */}
+  <div className="chart-legend" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    {data.map((item, index) => (
+      <div key={index} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div
+          style={{
+            width: "12px",
+            height: "12px",
+            borderRadius: "50%",
+            backgroundColor: item.color,
+          }}
+        />
+        <span style={{ fontWeight: "bold", color: item.color }}>{item.label} {item.value}%</span>
+        <span style={{ color: "#666" }}>({item.count}개)</span>
+      </div>
+    ))}
+  </div>
+
+
+              
             </div>
           </div>
           <div className="daily-breakdown">
             <div className="daily-header">
-              <img className="calendar-days" src="calendar-days0.svg" />
+              <img className="calendar-days" src={calander} />
               <div className="div5">요일별 급식 결과 </div>
             </div>
             <div className="daily-grid">
