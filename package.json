@@ -9,8 +9,10 @@
   "main": "src/index.jsx",
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
+    "date-fns": "^4.1.0",
     "firebase": "^11.8.1",
     "react": "18.0.0",
+    "react-datepicker": "^8.4.0",
     "react-dom": "18.0.0",
     "react-router-dom": "^7.6.1",
     "recharts": "^2.15.3"

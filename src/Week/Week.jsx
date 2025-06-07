@@ -14,7 +14,7 @@ const allergyMap = {
   17: "오징어", 18: "조개류"
 };
 
-const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // 초록, 노랑, 빨강
+const COLORS = ["#4CAF50", "#FFC107", "#F44336"];
 
 // 이번 주 월~금 날짜 구하기
 function getWeekDates() {
@@ -38,31 +38,43 @@ export const Week = ({ onNavigate, className, ...props }) => {
   const [daily, setDaily] = useState({});
   const [topExclude, setTopExclude] = useState([]);
   const [allergies, setAllergies] = useState([]);
+  const [schoolInfo, setSchoolInfo] = useState({
+    eduCode: "",
+    schoolCode: "",
+    schoolName: "",
+  });
   const weekDates = getWeekDates();
 
-  // 사용자 알레르기 정보 로딩
+  // Firestore에서 유저 데이터(학교, 알레르기) 불러오기
   useEffect(() => {
-    const fetchUserAllergy = async () => {
+    const fetchUserSettings = async () => {
       const user = auth.currentUser;
       if (user) {
         const ref = doc(db, "users", user.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-          setAllergies(snap.data().allergies || []);
+          const d = snap.data();
+          setAllergies(d.allergies || []);
+          setSchoolInfo({
+            eduCode: d.eduCode || "",
+            schoolCode: d.schoolCode || "",
+            schoolName: d.schoolName || "",
+          });
         }
       }
     };
-    fetchUserAllergy();
+    fetchUserSettings();
   }, []);
 
-  // 급식 데이터 주간 로딩 + 분석
+  // 학교정보 있을 때 급식 데이터 주간 로딩 + 분석
   useEffect(() => {
     const fetchMeals = async () => {
-      // 날짜 범위
+      if (!schoolInfo.eduCode || !schoolInfo.schoolCode) return;
       const from = weekDates[0].key;
       const to = weekDates[4].key;
 
-      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=E10&SD_SCHUL_CODE=7361255&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
+      // 네이스 api 호출 - 사용자가 선택한 학교 기준
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${schoolInfo.eduCode}&SD_SCHUL_CODE=${schoolInfo.schoolCode}&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
       const res = await fetch(url);
       const data = await res.json();
       const rows = data?.mealServiceDietInfo?.[1]?.row || [];
@@ -99,6 +111,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
 
       setSummary(sum);
       setDaily(perDay);
+
       // 제외 top3
       const top = Object.entries(excludeCount)
         .sort((a, b) => b[1] - a[1])
@@ -106,8 +119,9 @@ export const Week = ({ onNavigate, className, ...props }) => {
         .map(([name, cnt]) => ({ name, count: cnt }));
       setTopExclude(top);
     };
-    if (allergies.length > 0) fetchMeals();
-  }, [allergies]);
+    // 학교+알러지 모두 로딩됐을 때만 실행
+    if (schoolInfo.eduCode && schoolInfo.schoolCode) fetchMeals();
+  }, [allergies, schoolInfo.eduCode, schoolInfo.schoolCode]);
 
   // PieChart용
   const pieData = [
@@ -123,6 +137,10 @@ export const Week = ({ onNavigate, className, ...props }) => {
       </div>
       <div className="content-container">
         <div className="content">
+          {/* 학교명 표시 */}
+          <div style={{ marginBottom: 16, color: "#222", fontWeight: 600 }}>
+            📘 내 학교: {schoolInfo.schoolName ? schoolInfo.schoolName : "설정에서 학교를 먼저 선택하세요"}
+          </div>
           {/* 주간 요약 */}
           <div className="week-period">
             <div className="calendar-icon">
@@ -214,7 +232,6 @@ export const Week = ({ onNavigate, className, ...props }) => {
                 topExclude.map((item, idx) => (
                   <div className={`excluded-item-${idx + 1}`} key={item.name}>
                     <div className="item-info">
-                      {/* 아이콘은 필요시 직접 매핑 */}
                       <div className="div6">{item.name}</div>
                     </div>
                     <div className="reason">
@@ -225,7 +242,6 @@ export const Week = ({ onNavigate, className, ...props }) => {
               )}
             </div>
           </div>
-          {/* 기타 피드백 등 나머지 UI... */}
         </div>
       </div>
       <div className="tab-bar">
@@ -246,7 +262,6 @@ export const Week = ({ onNavigate, className, ...props }) => {
           <div className="div10">내정보</div>
         </div>
       </div>
-
     </div>
   );
 };
