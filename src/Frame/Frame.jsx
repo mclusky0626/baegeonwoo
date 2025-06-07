@@ -2,6 +2,8 @@ import "./Frame.css";
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+
 import black from "../imgs/black.png";
 import edit from "../imgs/edit.svg";
 import knife from "../imgs/knifeandafork.svg";
@@ -12,9 +14,6 @@ import warn from "../imgs/warn.png";
 import lock from "../imgs/lock.png";
 import lang from "../imgs/lang.png";
 import bell from "../imgs/bell.png";
-import { signOut } from "firebase/auth";
-
-
 import check from "../imgs/checkmate.svg";
 
 export const Frame = ({ onNavigate, className = "" }) => {
@@ -24,17 +23,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const [schoolInput, setSchoolInput] = useState("");
   const [gradeInput, setGradeInput] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      alert("로그아웃 되었습니다.");
-      window.location.reload(); // 혹은 onNavigate("home") 등으로 이동 처리
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-      alert("로그아웃 중 오류가 발생했습니다.");
-    }
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,7 +37,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
         setSchoolInput(data.school || "");
         setGradeInput(data.grade || "");
       }
-
       setLoading(false);
     };
     fetchUserData();
@@ -64,72 +51,34 @@ export const Frame = ({ onNavigate, className = "" }) => {
       school: schoolInput,
       grade: gradeInput,
     });
-    setUserData({
-      ...userData,
-      name: nameInput,
-      school: schoolInput,
-      grade: gradeInput,
-    });
+    setUserData({ ...userData, name: nameInput, school: schoolInput, grade: gradeInput });
     setEditMode(false);
   };
-  const handleImageChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file || !auth.currentUser) return;
 
-  const uid = auth.currentUser.uid;
-  const storageRef = ref(storage, `profileImages/${uid}`);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      alert("로그아웃 되었습니다.");
+      window.location.reload();
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      alert("로그아웃 중 오류가 발생했습니다.");
+    }
+  };
 
-  await updateDoc(doc(db, "users", uid), {
-    photoURL: url,
-  });
-
-  setProfileImage(url);
-};
-  
   if (loading) return <div className="frame">로딩 중...</div>;
   if (!userData) {
     return (
-      <div className="frame" style={{ padding: "40px", textAlign: "center" }}>
+      <div className="frame login-required">
         <h2>로그인이 필요합니다</h2>
-        <p style={{ marginBottom: "20px", color: "#555" }}>
-          이 기능을 사용하려면 먼저 로그인하세요.
-        </p>
-        <button
-          onClick={() => onNavigate("home")}
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#007aff",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            marginBottom: "10px",
-            fontSize: "15px",
-            cursor: "pointer",
-          }}
-        >
-          홈으로 돌아가기
-        </button>
-        <br />
-        <button
-          onClick={() => window.location.reload()} // 로그인 모달을 사용하는 구조일 경우 조정 필요
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#f1f1f1",
-            color: "#222",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            fontSize: "15px",
-            cursor: "pointer",
-          }}
-        >
-          다시 로그인 시도
-        </button>
+        <p>이 기능을 사용하려면 먼저 로그인하세요.</p>
+        <div className="btn-group">
+          <button onClick={() => onNavigate("home")}>홈으로 돌아가기</button>
+          <button onClick={() => window.location.reload()}>다시 로그인</button>
+        </div>
       </div>
     );
   }
-
 
   const name = userData.name || "이름없음";
   const school = userData.school || "학교없음";
@@ -139,141 +88,134 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const medicine = userData.medicine || "없음";
 
   return (
-    <div className={"frame " + className}>
+    <div className={`frame ${className}`}>
+      <header className="header">
+        <div className="title">내 정보</div>
+        <button className="settings-btn" onClick={() => onNavigate("settings")}>
+          <img src="settings0.svg" alt="설정" />
+        </button>
+      </header>
+
       <div className="body">
-        <div className="div">
-          <div className="main">
-            <div className="section">
-              <img className="img" src={black} alt="프로필" />
-              <div className="div2">
-                <div className="div3">
-                  {!editMode ? (
-                    <>
-                      <div className="div4">{name}</div>
-                      <div className="button" onClick={() => setEditMode(true)} title="이름 수정">
-                        <div className="i">
-                          <div className="svg">
-                            <img className="frame2" src={edit} alt="edit" style={{ width: "200%", height: "200%" }} />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input className="div4" value={nameInput} onChange={e => setNameInput(e.target.value)} style={{ fontSize: 16, width: 80 }} />
-                      <button className="button" style={{ background: "#4d8cfb", color: "#fff" }} onClick={handleSave}>저장</button>
-                    </>
-                  )}
-                </div>
-                <div className="div5">
-                  {!editMode ? (
-                    <>
-                      <div className="div6">{school}</div>
-                      <div className="button2" onClick={() => setEditMode(true)}>
-                        <div className="i2">
-                          <div className="svg2"><img className="frame3" src={edit} alt="edit" style={{ width: "170%", height: "170%" }} /></div>
-                        </div>
-                      </div>
-                      <div className="div7">| </div>
-                      <div className="_3">{grade}</div>
-                      <div className="button3" onClick={() => setEditMode(true)}>
-                        <div className="i2">
-                          <div className="svg2"><img className="frame4" src={edit} alt="edit" style={{ width: "170%", height: "170%" }} /></div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input className="div6" value={schoolInput} onChange={e => setSchoolInput(e.target.value)} style={{ fontSize: 12, width: 100 }} />
-                      <div className="div7">| </div>
-                      <input className="_3" value={gradeInput} onChange={e => setGradeInput(e.target.value)} style={{ fontSize: 12, width: 40 }} />
-                    </>
-                  )}
-                </div>
+        {/* 프로필 카드 */}
+        <section className="card profile-card">
+          <div className="profile-row">
+            <img className="avatar" src={black} alt="프로필" />
+            <div className="info">
+              <div className="row name-row">
+                {!editMode ? (
+                  <>
+                    <h3 className="name">{name}</h3>
+                    <button className="edit-btn" onClick={() => setEditMode(true)}>
+                      <img src={edit} alt="이름 수정" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} />
+                    <button className="save-btn" onClick={handleSave}>
+                      저장
+                    </button>
+                  </>
+                )}
               </div>
-            </div>
-
-            {/* 급식 필터 기준 */}
-            <div className="section2">
-              <div className="div8">
-                <div className="frame5"><img className="frame6" src={knife} alt="" /></div>
-                <div className="div9">급식 필터 기준 </div>
-                <div className="button4" onClick={() => onNavigate("settings")}>
-                  <div className="i3">
-                    <div className="svg3"><img className="frame7" src={knife} alt="" /></div>
-                  </div>
-                  <div className="div10">편집 </div>
-                </div>
-              </div>
-              <div className="div11">
-                <div className="div12"><div className="div13">종교 : </div><div className="div14">{religion}</div></div>
-                <div className="div15"><div className="div16">알러지 : </div><div className="div17">{allergy}</div></div>
-                <div className="div18"><div className="div19">약 복용 : </div><div className="div20">{medicine}</div></div>
-              </div>
-            </div>
-
-            {/* 급식 통계 */}
-            <div className="section3">
-              <div className="div8">
-                <div className="frame8"><img className="frame9" src={Vector} alt="" /></div>
-                <div className="div21">나의 급식 통계 </div>
-              </div>
-              <div className="div22">
-                <div className="_70">70%</div>
-                <div className="frame10"><img className="frame11" src={ok} alt="" /></div>
-                <div className="_10">10%</div>
-                <div className="frame12"><img className="frame13" src={warn} alt="" /></div>
-                <div className="_20">20%</div>
-                <div className="frame14"><img className="frame15" src={no} alt="" /></div>
-              </div>
-              <div className="button5"><div className="div23">자세히 보기 </div></div>
-            </div>
-
-            {/* 언어 설정 */}
-            <div className="section4">
-              <div className="div24">
-                <div className="frame16"><img className="frame17" src={lang} alt="" /></div>
-                <div className="div25">언어 설정 </div>
-                <div className="span"><div className="div26">한국어 </div></div>
-              </div>
-              <div className="button6"><div className="div27">변경 </div></div>
-            </div>
-
-            {/* 알림 설정 */}
-            <div className="section5">
-              <div className="div8">
-                <div className="frame5"><img className="frame18" src={bell} alt="" /></div>
-                <div className="div28">알림 설정 </div>
-                <div className="span2"><div className="on">ON </div></div>
-              </div>
-              <div className="div29">
-                <div className="label"><div className="div30">급식 변경 시 알림 받기 </div><div className="input"><div className="svg4"><img className="frame19" src={check} alt="" /></div></div></div>
-                <div className="label2"><div className="div31">피드백 요청 알림 </div><div className="input"><div className="svg4"><img className="frame20" src={check} alt="" /></div></div></div>
-              </div>
-            </div>
-
-            {/* 계정 설정 */}
-            <div className="section6">
-              <div className="div8"><div className="frame16"><img className="frame21" src={lock} alt="" /></div><div className="div25">계정 설정 </div></div>
-              <div className="div32">
-                <div className="button7" onClick={handleLogout}><div className="div33">로그아웃 </div></div>
-                <div className="button8"><div className="div34">개인정보 처리방침 </div></div>
+              <div className="row school-row">
+                <span className="school">{school}</span>
+                <button className="edit-btn" onClick={() => setEditMode(true)}>
+                  <img src={edit} alt="학교 수정" />
+                </button>
+                <span className="divider">|</span>
+                <span className="grade">{grade}</span>
+                <button className="edit-btn" onClick={() => setEditMode(true)}>
+                  <img src={edit} alt="학년 수정" />
+                </button>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* 푸터 및 탭 바 */}
-          <div className="footer"><div className="_2024-school-meal-service">© 2024 School Meal Service </div></div>
-          <div className="header"><div className="div35"><div className="div36">내 정보 </div></div><div className="button9"><div className="i4"><div className="svg5"><img className="frame22" src="frame22.svg" alt="" /></div></div></div></div>
-          <div className="tab-bar">
-            <div className="home-tab" onClick={() => onNavigate("home")}><img className="home" src="home0.svg" alt="" /><div className="div15">홈</div></div>
-            <div className="calendar-tab" onClick={() => onNavigate("week")}><img className="calendar" src="calendar0.svg" alt="" /><div className="div15">급식표</div></div>
-            <div className="settings-tab" onClick={() => onNavigate("settings")}><img className="settings" src="settings0.svg" alt="" /><div className="div16">설정</div></div>
-            <div className="profile-tab" onClick={() => onNavigate("frame")}><img className="user" src="user0.svg" alt="" /><div className="div15">내정보</div></div>
+        {/* 급식 필터 기준 */}
+        <section className="card filter-card">
+          <div className="card-header">
+            <div className="row">
+              <img src={knife} alt="" />
+              <h4>급식 필터 기준</h4>
+            </div>
+            <button className="edit-btn" onClick={() => onNavigate("settings")}>
+              편집
+            </button>
           </div>
-          <div className="divider"></div>
-        </div>
+          <ul className="filter-list">
+            <li>종교: {religion}</li>
+            <li>알러지: {allergy}</li>
+            <li>약 복용: {medicine}</li>
+          </ul>
+        </section>
+
+        {/* 통계 카드 */}
+        <section className="card stats-card">
+          <div className="card-header">
+            <img src={Vector} alt="" />
+            <h4>나의 급식 통계</h4>
+          </div>
+          <div className="stats-row">
+            <div><img src={ok} alt="좋음" /> 70%</div>
+            <div><img src={warn} alt="주의" /> 10%</div>
+            <div><img src={no} alt="제외" /> 20%</div>
+          </div>
+          <button className="detail-btn">자세히 보기</button>
+        </section>
+
+        {/* 언어 설정 */}
+        <section className="card simple-card">
+          <div className="row">
+            <img src={lang} alt="언어" />
+            <span>언어 설정</span>
+            <span className="value">한국어</span>
+            <button className="edit-btn">변경</button>
+          </div>
+        </section>
+
+        {/* 알림 설정 */}
+        <section className="card simple-card">
+          <div className="row">
+            <img src={bell} alt="알림" />
+            <span>알림 설정</span>
+            <span className="value on">ON</span>
+          </div>
+          <ul className="notif-list">
+            <li>
+              <label>
+                <input type="checkbox" defaultChecked/> 급식 변경 시 알림 받기
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" defaultChecked/> 피드백 요청 알림
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        {/* 계정 설정 */}
+        <section className="card simple-card">
+          <div className="row">
+            <img src={lock} alt="계정" />
+            <span>계정 설정</span>
+          </div>
+          <div className="btn-group">
+            <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+            <button className="privacy-btn">개인정보 처리방침</button>
+          </div>
+        </section>
       </div>
+
+      <nav className="tab-bar">
+        <button onClick={() => onNavigate("home")}><img src="home0.svg" /><span>홈</span></button>
+        <button onClick={() => onNavigate("week")}><img src="calendar0.svg" /><span>급식표</span></button>
+        <button onClick={() => onNavigate("settings")}><img src="settings1.svg" /><span>설정</span></button>
+        <button onClick={() => onNavigate("frame")}><img src="user0.svg" /><span>내정보</span></button>
+      </nav>
     </div>
   );
 };
