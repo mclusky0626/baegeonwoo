@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./SettingsScreen.css";
 import { db, auth } from "../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -17,7 +17,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   const [allergies, setAllergies] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [saveMsg, setSaveMsg] = useState("");
-
+  const inputRef = useRef(null);
   const allergyList = [
     "난류", "우유", "메밀", "땅콩", "대두", "밀", "고등어", "게", "새우",
     "돼지고기", "복숭아", "토마토", "아황산류", "호두", "닭고기", "쇠고기", "오징어", "조개류"
@@ -45,7 +45,8 @@ export const SettingsScreen = ({ onNavigate }) => {
     setSchoolName(school.SCHUL_NM);
     setEduCode(school.ATPT_OFCDC_SC_CODE);
     setSchoolCode(school.SD_SCHUL_CODE);
-    setSchoolList([]); // 리스트 닫기
+    setSchoolList([]);
+    if (inputRef.current) inputRef.current.blur();
   };
 
   // Firestore에서 사용자 정보 불러오기
@@ -137,6 +138,7 @@ export const SettingsScreen = ({ onNavigate }) => {
         <div className="school-section">
           <div className="div2">학교 선택</div>
           <input
+            ref={inputRef}
             className="school-input-box"
             type="text"
             placeholder="학교명을 입력하세요"

@@ -24,6 +24,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const [gradeInput, setGradeInput] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // 유저 데이터 로딩
   useEffect(() => {
     const fetchUserData = async () => {
       if (!auth.currentUser) return setLoading(false);
@@ -34,7 +35,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
         const data = snap.data();
         setUserData(data);
         setNameInput(data.name || "");
-        setSchoolInput(data.school || "");
+        setSchoolInput(data.schoolName || "학교없음");
         setGradeInput(data.grade || "");
       }
       setLoading(false);
@@ -48,10 +49,10 @@ export const Frame = ({ onNavigate, className = "" }) => {
     const ref = doc(db, "users", uid);
     await updateDoc(ref, {
       name: nameInput,
-      school: schoolInput,
+      schoolName: schoolInput,
       grade: gradeInput,
     });
-    setUserData({ ...userData, name: nameInput, school: schoolInput, grade: gradeInput });
+    setUserData({ ...userData, name: nameInput, schoolName: schoolInput, grade: gradeInput });
     setEditMode(false);
   };
 
@@ -80,12 +81,17 @@ export const Frame = ({ onNavigate, className = "" }) => {
     );
   }
 
+  // DB 구조 기준 변수명
   const name = userData.name || "이름없음";
-  const school = userData.school || "학교없음";
+  const school = userData.schoolName || "학교없음";
   const grade = userData.grade || "학년없음";
-  const religion = (userData.religion && userData.religion.join(", ")) || "없음";
-  const allergy = (userData.allergy && userData.allergy.join(", ")) || "없음";
-  const medicine = userData.medicine || "없음";
+  const religion = (userData.religion && userData.religion.length > 0)
+    ? userData.religion.join(", ")
+    : "없음";
+  const allergy = (userData.allergies && userData.allergies.length > 0)
+    ? userData.allergies.join(", ")
+    : "없음";
+  const dietType = userData.dietType || "없음";
 
   return (
     <div className={`frame ${className}`}>
@@ -147,8 +153,8 @@ export const Frame = ({ onNavigate, className = "" }) => {
           </div>
           <ul className="filter-list">
             <li>종교: {religion}</li>
+            <li>식생활유형: {dietType}</li>
             <li>알러지: {allergy}</li>
-            <li>약 복용: {medicine}</li>
           </ul>
         </section>
 
@@ -186,12 +192,12 @@ export const Frame = ({ onNavigate, className = "" }) => {
           <ul className="notif-list">
             <li>
               <label>
-                <input type="checkbox" defaultChecked/> 급식 변경 시 알림 받기
+                <input type="checkbox" defaultChecked /> 급식 변경 시 알림 받기
               </label>
             </li>
             <li>
               <label>
-                <input type="checkbox" defaultChecked/> 피드백 요청 알림
+                <input type="checkbox" defaultChecked /> 피드백 요청 알림
               </label>
             </li>
           </ul>
@@ -219,3 +225,18 @@ export const Frame = ({ onNavigate, className = "" }) => {
     </div>
   );
 };
+
+export default Frame;
+// Note: The above code assumes that the necessary Firebase setup and CSS styles are already in place.
+// The code is structured to provide a user profile interface with options to edit personal information, view dietary preferences, and manage account settings.         
+// The navigation bar at the bottom allows users to switch between different sections of the app.
+// The component uses React hooks for state management and side effects, and Firebase Firestore for data storage and retrieval. 
+// The design is responsive and user-friendly, with clear buttons for editing and saving changes.
+// I dont like eating raw fish but I love sushi, so I eat it anyway.
+// The code is modular and can be easily extended with additional features or styles as needed.
+// My favorite game is League of Legends, and I play it every day.
+// I also enjoy playing other games like Valorant and Minecraft, but League of Legends remains my top choice.
+// I often play with friends, and we have a lot of fun strategizing and competing together.
+// I also like to watch esports tournaments and follow my favorite teams and players.
+//My favorite progamer is Faker, and I admire his skills and dedication to the game.
+// I also enjoy watching other games like Dota 2 and CS:GO, but League of Legends is my main focus.
