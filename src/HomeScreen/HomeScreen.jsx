@@ -1,40 +1,79 @@
 import "./HomeScreen.css";
 import React, { useEffect, useState } from "react";
-import { auth } from "../firebase"; // firebase.js에서 export한 auth
+import { auth, db } from "../firebase";
 import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // 로그인/회원가입 UI
-  const [showLogin, setShowLogin] = useState(false);
-  const [loginTab, setLoginTab] = useState("login"); // login | register
+  const [todayStr, setTodayStr] = useState("");
+  const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginTab, setLoginTab] = useState("login");
+  const [allergies, setAllergies] = useState([]);
 
-  // 급식 API
   const API_KEY = "a27ba9b1a9144411a928c9358597817e";
   const EDU_CODE = "E10";
   const SCHOOL_CODE = "7361255";
-  const NEXT_MONDAY = "20250529"; // 2025년 5월 29일
+
+  const allergyMap = {
+    1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
+    7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
+    12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
+    17: "오징어", 18: "조개류"
+  };
+
+  useEffect(() => {
+    setTodayStr(getTodayDisplay());
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchAllergies = async () => {
+      if (user) {
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const d = snap.data();
+          setAllergies(d.allergies || []);
+        }
+      }
+    };
+    fetchAllergies();
+  }, [user]);
 
   useEffect(() => {
     async function fetchMeals() {
       setLoading(true);
-      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${API_KEY}&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${EDU_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${NEXT_MONDAY}`;
+      const todayStr = getToday();
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${API_KEY}&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${EDU_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${todayStr}`;
       const res = await fetch(url);
       const data = await res.json();
       const rows = data?.mealServiceDietInfo?.[1]?.row;
       if (rows && rows[0]?.DDISH_NM) {
-        setMeals(rows[0].DDISH_NM.split("<br/>").map((txt) => txt.replace(/\([^)]+\)/g, "").trim()));
+        const dishList = rows[0].DDISH_NM.split("<br/>").map((txt) => {
+          const name = txt.replace(/\s*\([^)]+\)/, "").trim();
+          const match = txt.match(/\(([^)]+)\)/);
+          const codes = match ? match[1].split(".").map(Number) : [];
+          const ingredients = codes.map((code) => allergyMap[code]).filter(Boolean);
+          return { name, ingredients };
+        });
+        setMeals(dishList);
       } else {
         setMeals([]);
       }
@@ -43,15 +82,24 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     fetchMeals();
   }, []);
 
-  // 파이어베이스 로그인 감지
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
+  function getTodayDisplay() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = today.getMonth() + 1;
+    const dd = today.getDate();
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+    const day = dayNames[today.getDay()];
+    return `${yyyy}년 ${mm}월 ${dd}일 (${day})`;
+  }
 
-  // 로그인
+  function getToday() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}${mm}${dd}`;
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError("");
@@ -63,7 +111,6 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     }
   };
 
-  // 회원가입
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoginError("");
@@ -71,29 +118,18 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
     } catch (err) {
-      if (err.code === "auth/email-already-in-use") {
-        setLoginError("이미 사용중인 이메일입니다.");
-      } else if (err.code === "auth/weak-password") {
-        setLoginError("비밀번호는 6자 이상이어야 합니다.");
-      } else if (err.code === "auth/invalid-email") {
-        setLoginError("유효하지 않은 이메일입니다.");
-      } else {
-        setLoginError("회원가입 실패: " + err.message);
-      }
+      setLoginError("회원가입 실패: " + err.message);
     }
   };
 
-  // 로그아웃
   const handleLogout = async () => {
     await signOut(auth);
   };
 
   return (
     <div className={"home-screen " + className}>
-      {/* 로그인/로그아웃/회원가입 버튼 (상단 우측) */}
-      <div style={{
-        position: "absolute", right: 20, top: 10, zIndex: 10,
-      }}>
+      {/* 로그인 UI */}
+      <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
         {user ? (
           <span style={{ fontSize: 13 }}>
             {user.email}
@@ -108,79 +144,64 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         )}
       </div>
 
-      {/* 로그인/회원가입 모달 */}
       {showLogin && (
-        <div style={{
-          position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.25)", zIndex: 99,
-          display: "flex", alignItems: "center", justifyContent: "center"
-        }}>
-          <div style={{
-            background: "white", borderRadius: 12, boxShadow: "0 2px 16px #0001", padding: 24, minWidth: 280,
-            display: "flex", flexDirection: "column", gap: 12,
-          }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-              <button
-                style={{
-                  flex: 1, fontWeight: loginTab === "login" ? "bold" : "normal",
-                  background: loginTab === "login" ? "#eee" : "transparent",
-                  border: "none", borderBottom: loginTab === "login" ? "2px solid #007aff" : "1px solid #eee", padding: 10, cursor: "pointer",
-                  borderRadius: 8,
-                }}
-                onClick={() => { setLoginTab("login"); setLoginError(""); }}
-              >로그인</button>
-              <button
-                style={{
-                  flex: 1, fontWeight: loginTab === "register" ? "bold" : "normal",
-                  background: loginTab === "register" ? "#eee" : "transparent",
-                  border: "none", borderBottom: loginTab === "register" ? "2px solid #007aff" : "1px solid #eee", padding: 10, cursor: "pointer",
-                  borderRadius: 8,
-                }}
-                onClick={() => { setLoginTab("register"); setLoginError(""); }}
-              >회원가입</button>
-            </div>
-            <form onSubmit={loginTab === "login" ? handleLogin : handleRegister} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <input
-                type="email" value={email} required
-                placeholder="이메일" autoFocus
-                onChange={e => setEmail(e.target.value)}
-                style={{ padding: 8, borderRadius: 6, border: "1px solid #eee" }}
-              />
-              <input
-                type="password" value={password} required
-                placeholder="비밀번호"
-                onChange={e => setPassword(e.target.value)}
-                style={{ padding: 8, borderRadius: 6, border: "1px solid #eee" }}
-              />
-              <button type="submit" style={{
-                padding: 10, background: "#007aff", color: "white", border: "none", borderRadius: 8, marginTop: 8
-              }}>
-                {loginTab === "login" ? "로그인" : "회원가입"}
-              </button>
-              <button type="button" style={{
-                padding: 10, background: "#eee", color: "#222", border: "none", borderRadius: 8
-              }} onClick={() => setShowLogin(false)}>
-                닫기
-              </button>
-              {loginError && <span style={{ color: "red", fontSize: 13 }}>{loginError}</span>}
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 이하 급식, 하단 바 등 기존 UI 그대로 */}
-      <div className="status-bar">
-        <div className="_9-41">9:41 </div>
-        <div className="status-icons">
-          <img className="signal" src="signal0.svg" />
-          <img className="wifi" src="wifi0.svg" />
-          <img className="battery" src="battery0.svg" />
-        </div>
+  <div className="login-modal-bg">
+    <div className="login-modal">
+      <div className="login-tabs">
+        <button
+          className={loginTab === "login" ? "active" : ""}
+          onClick={() => setLoginTab("login")}
+        >
+          로그인
+        </button>
+        <button
+          className={loginTab === "register" ? "active" : ""}
+          onClick={() => setLoginTab("register")}
+        >
+          회원가입
+        </button>
       </div>
+      <form
+        onSubmit={loginTab === "login" ? handleLogin : handleRegister}
+        className="login-form"
+      >
+        <input
+          type="email"
+          value={email}
+          required
+          placeholder="이메일"
+          onChange={e => setEmail(e.target.value)}
+          className="login-input"
+        />
+        <input
+          type="password"
+          value={password}
+          required
+          placeholder="비밀번호"
+          onChange={e => setPassword(e.target.value)}
+          className="login-input"
+        />
+        <button type="submit" className="login-btn">
+          {loginTab === "login" ? "로그인" : "회원가입"}
+        </button>
+        {loginError && <div className="login-error">{loginError}</div>}
+      </form>
+      <button className="login-cancel" onClick={() => setShowLogin(false)}>
+        닫기
+      </button>
+    </div>
+  </div>
+)}
+
+
+      {/* UI 시작 */}
+      
+
       <div className="header">
         <div className="date-row">
           <div className="date-info">
             <img className="calendar" src="calendar0.svg" />
-            <div className="_2025-5-28">2025년 5월 28일 (수) </div>
+            <div className="_2025-5-28">{todayStr}</div>
           </div>
           <img className="settings" src="settings0.svg" />
         </div>
@@ -189,10 +210,12 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           <div className="div">인천 초은중학교 </div>
         </div>
       </div>
+
       <div className="content-container">
         <div className="content">
           <div className="meal-title">
             <img className="utensils" src="utensils0.svg" />
+            <div className="div2">오늘의 급식</div>
           </div>
           <div className="meal-items">
             {loading ? (
@@ -200,39 +223,33 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
             ) : meals.length === 0 ? (
               <div>급식 데이터가 없습니다.</div>
             ) : (
-              meals.map((menu, idx) => (
-                <div key={idx} className="simple-meal-item">
-                  <span className="meal-name">{menu}</span>
-                </div>
-              ))
+              meals.map((menu, idx) => {
+                const hasAllergy = menu.ingredients.some(i => allergies.includes(i));
+                const className = hasAllergy ? "simple-meal-item warning" : "simple-meal-item";
+                const icon = hasAllergy ? "⚠️" : "✅";
+                const label = hasAllergy
+                  ? `알레르기 주의: ${menu.ingredients.join(", ")}`
+                  : "먹을 수 있어요";
+
+                return (
+                  <div key={idx} className={className}>
+                    <span className="meal-name">{icon} {menu.name}</span>
+                    <div style={{ fontSize: 13, marginTop: 4 }}>
+                      {label}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
       </div>
-      <div className="summary-card">
-        <div className="summary-title">
-          <img className="bar-chart-3" src="bar-chart-30.svg" />
-          <div className="div7">오늘의 급식 요약 </div>
-        </div>
-        <div className="summary-stats">
-          <div className="safe-count">
-            <img className="check-circle" src="check-circle0.svg" />
-            <div className="_3">먹을 수 있는 항목: 3개 </div>
-          </div>
-          <div className="warning-count">
-            <img className="alert-circle" src="alert-circle0.svg" />
-            <div className="_1">주의 항목: 1개 </div>
-          </div>
-          <div className="restricted-count">
-            <img className="x-circle" src="x-circle0.svg" />
-            <div className="_12">제외된 항목: 1개 </div>
-          </div>
-        </div>
-      </div>
+
       <div className="feedback-button">
         <img className="message-square" src="message-square0.svg" />
         <div className="div8">피드백 남기기 </div>
       </div>
+
       <div className="tab-bar">
         <div className="home-tab" onClick={() => onNavigate("home")}>
           <img className="home" src="home0.svg" />
@@ -254,3 +271,5 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     </div>
   );
 };
+
+export default HomeScreen;

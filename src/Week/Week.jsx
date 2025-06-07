@@ -1,237 +1,254 @@
+import React, { useEffect, useState } from "react";
 import "./Week.css";
-import calander from "../imgs/CCC.png"
-import chart from "../imgs/chart.png"
-import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
+import calander from "../imgs/CCC.png";
+import chart from "../imgs/chart.png";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-export const Week = ({ className, ...props }) => {
+// 알레르기 코드 매핑
+const allergyMap = {
+  1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
+  7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
+  12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
+  17: "오징어", 18: "조개류"
+};
 
-const data = [
-  { label: "가능", value: 63, count: 15, color: "#4CAF50" },
-  { label: "주의", value: 15, count: 4, color: "#FFC107" },
-  { label: "제외", value: 22, count: 5, color: "#F44336" },
-];
+const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // 초록, 노랑, 빨강
 
+// 이번 주 월~금 날짜 구하기
+function getWeekDates() {
+  const today = new Date();
+  const start = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+  const dates = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push({
+      key: d.toISOString().slice(0, 10).replace(/-/g, ""),
+      label: `${d.getMonth() + 1}/${d.getDate()}`
+    });
+  }
+  return dates;
+}
 
-const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // 각각 초록, 노랑, 빨강
+export const Week = ({ onNavigate, className, ...props }) => {
+  const [weekData, setWeekData] = useState([]);
+  const [summary, setSummary] = useState({ 가능: 0, 주의: 0, 제외: 0 });
+  const [daily, setDaily] = useState({});
+  const [topExclude, setTopExclude] = useState([]);
+  const [allergies, setAllergies] = useState([]);
+  const weekDates = getWeekDates();
 
+  // 사용자 알레르기 정보 로딩
+  useEffect(() => {
+    const fetchUserAllergy = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setAllergies(snap.data().allergies || []);
+        }
+      }
+    };
+    fetchUserAllergy();
+  }, []);
+
+  // 급식 데이터 주간 로딩 + 분석
+  useEffect(() => {
+    const fetchMeals = async () => {
+      // 날짜 범위
+      const from = weekDates[0].key;
+      const to = weekDates[4].key;
+
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=E10&SD_SCHUL_CODE=7361255&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+      setWeekData(rows);
+
+      // 분석
+      let sum = { 가능: 0, 주의: 0, 제외: 0 };
+      let perDay = {};
+      let excludeCount = {};
+
+      weekDates.forEach(({ key }) => { perDay[key] = { 가능: 0, 주의: 0, 제외: 0 }; });
+
+      for (const meal of rows) {
+        const date = meal.MLSV_YMD;
+        const dishes = meal.DDISH_NM.split("<br/>");
+        for (const dish of dishes) {
+          const name = dish.replace(/\s*\([^)]+\)/, "").trim();
+          const match = dish.match(/\(([^)]+)\)/);
+          const codes = match ? match[1].split(".").map(Number) : [];
+          const ingredients = codes.map((c) => allergyMap[c]).filter(Boolean);
+          // 분류
+          let category = "가능";
+          if (ingredients.length && allergies.length) {
+            const overlap = ingredients.filter((i) => allergies.includes(i));
+            if (overlap.length) {
+              category = "주의";
+              overlap.forEach((a) => { excludeCount[a] = (excludeCount[a] || 0) + 1; });
+            }
+          }
+          sum[category]++;
+          perDay[date][category]++;
+        }
+      }
+
+      setSummary(sum);
+      setDaily(perDay);
+      // 제외 top3
+      const top = Object.entries(excludeCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name, cnt]) => ({ name, count: cnt }));
+      setTopExclude(top);
+    };
+    if (allergies.length > 0) fetchMeals();
+  }, [allergies]);
+
+  // PieChart용
+  const pieData = [
+    { label: "가능", value: summary.가능, color: "#4CAF50" },
+    { label: "주의", value: summary.주의, color: "#FFC107" },
+    { label: "제외", value: summary.제외, color: "#F44336" },
+  ];
 
   return (
     <div className={"week " + className}>
-      <div className="status-bar">
-        <div className="_9-41">9:41 </div>
-        <div className="status-icons">
-          <img className="signal" src="signal0.svg" />
-          <img className="wifi" src="wifi0.svg" />
-          <img className="battery" src="battery0.svg" />
-        </div>
-      </div>
       <div className="header">
-
-        <div className="div">주간 급식 리포트 </div>
-
+        <div className="div">주간 급식 리포트</div>
       </div>
       <div className="content-container">
         <div className="content">
+          {/* 주간 요약 */}
           <div className="week-period">
             <div className="calendar-icon">
               <img className="calendar-range" src={calander} />
-              <div className="div2">이번 주 급식 요약 </div>
+              <div className="div2">이번 주 급식 요약</div>
             </div>
-            <div className="_5-27-31-5">5월 27일 ~ 31일 (5일간) </div>
+            <div className="_5-27-31-5">
+              {weekDates[0].label} ~ {weekDates[4].label} (5일간)
+            </div>
           </div>
           <div className="stats-overview">
             <div className="stats-header">
-              <img className="pie-chart" src={chart}   />
-              <div className="div3">섭취 가능 식단 비율 </div>
+              <img className="pie-chart" src={chart} />
+              <div className="div3">섭취 가능 식단 비율</div>
             </div>
-           <div className="chart-container" style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-  {/* 차트 */}
-  <PieChart width={250} height={200}>
-    <Pie
-      data={data}
-      cx="50%"
-      cy="50%"
-      innerRadius={60}
-      outerRadius={80}
-      dataKey="value"
-      labelLine={false}
-      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-    >
-      {data.map((entry, index) => (
-        <Cell key={`cell-${index}`} fill={entry.color} />
-      ))}
-    </Pie>
-    <Tooltip />
-  </PieChart>
-
-  {/* 오른쪽 텍스트 */}
-  <div className="chart-legend" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-    {data.map((item, index) => (
-      <div key={index} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <div
-          style={{
-            width: "12px",
-            height: "12px",
-            borderRadius: "50%",
-            backgroundColor: item.color,
-          }}
-        />
-        <span style={{ fontWeight: "bold", color: item.color }}>{item.label} {item.value}%</span>
-        <span style={{ color: "#666" }}>({item.count}개)</span>
-      </div>
-    ))}
-  </div>
-
-
-              
+            <div className="chart-container" style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+              {/* 차트 */}
+              <PieChart width={250} height={200}>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+              {/* 오른쪽 텍스트 */}
+              <div className="chart-legend" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {pieData.map((item, index) => (
+                  <div key={index} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div
+                      style={{
+                        width: "12px", height: "12px", borderRadius: "50%", backgroundColor: item.color,
+                      }}
+                    />
+                    <span style={{ fontWeight: "bold", color: item.color }}>{item.label} {item.value}개</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          {/* 요일별 breakdown */}
           <div className="daily-breakdown">
             <div className="daily-header">
               <img className="calendar-days" src={calander} />
-              <div className="div5">요일별 급식 결과 </div>
+              <div className="div5">요일별 급식 결과</div>
             </div>
             <div className="daily-grid">
-              <div className="monday">
-                <div className="day-info">
-                  <div className="div6">월요일 </div>
-                  <div className="_5-27">5/27 </div>
-                </div>
-                <div className="day-results">
-                  <div className="frame4">
-                    <img className="check" src="check0.svg" />
+              {weekDates.map((d, idx) => (
+                <div className="day-column" key={d.key}>
+                  <div className="day-info">
+                    <div className="div6">{["월", "화", "수", "목", "금"][idx]}요일</div>
+                    <div className="_5-27">{d.label}</div>
                   </div>
-                  <div className="frame4">
-                    <img className="check2" src="check1.svg" />
-                  </div>
-                  <div className="frame5">
-                    <img className="alert-triangle" src="alert-triangle0.svg" />
-                  </div>
-                  <div className="frame6">
-                    <img className="x" src="x0.svg" />
-                  </div>
-                </div>
-              </div>
-              <div className="tuesday">
-                <div className="day-info">
-                  <div className="div6">화요일 </div>
-                  <div className="_5-28">5/28 </div>
-                </div>
-                <div className="day-results">
-                  <div className="frame4">
-                    <img className="check3" src="check2.svg" />
-                  </div>
-                  <div className="frame6">
-                    <img className="x2" src="x1.svg" />
-                  </div>
-                  <div className="frame6">
-                    <img className="x3" src="x2.svg" />
-                  </div>
-                  <div className="frame4">
-                    <img className="check4" src="check3.svg" />
+                  <div className="day-results">
+                    {["가능", "주의", "제외"].map((cat, i) =>
+                      Array.from({ length: (daily[d.key]?.[cat] || 0) }).map((_, j) => (
+                        <div className={"frame" + (cat === "가능" ? "4" : cat === "주의" ? "5" : "6")} key={cat + j}>
+                          <img
+                            className={cat === "가능" ? "check" : cat === "주의" ? "alert-triangle" : "x"}
+                            src={cat === "가능" ? "check0.svg" : cat === "주의" ? "alert-triangle0.svg" : "x0.svg"}
+                          />
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-              </div>
-              <div className="wednesday">
-                <div className="day-info">
-                  <div className="div6">수요일 </div>
-                  <div className="_5-29">5/29 </div>
-                </div>
-                <div className="day-results">
-                  <div className="frame5">
-                    <img
-                      className="alert-triangle2"
-                      src="alert-triangle1.svg"
-                    />
-                  </div>
-                  <div className="frame4">
-                    <img className="check5" src="check4.svg" />
-                  </div>
-                  <div className="frame4">
-                    <img className="check6" src="check5.svg" />
-                  </div>
-                  <div className="frame4">
-                    <img className="check7" src="check6.svg" />
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
+          {/* 제외 TOP3 */}
           <div className="excluded-analysis">
             <div className="excluded-header">
               <img className="x-circle" src="x-circle0.svg" />
-              <div className="top-3">제외된 항목 TOP 3 </div>
+              <div className="top-3">제외된 항목 TOP 3</div>
             </div>
             <div className="excluded-list">
-              <div className="excluded-item-1">
-                <div className="item-info">
-                  <img className="milk" src="milk0.svg" />
-                  <div className="div6">우유 </div>
-                </div>
-                <div className="reason">
-                  <div className="div7">알레르기 </div>
-                </div>
-              </div>
-              <div className="excluded-item-2">
-                <div className="item-info">
-                  <img className="beef" src="beef0.svg" />
-                  <div className="div6">미트볼 </div>
-                </div>
-                <div className="reason">
-                  <div className="div7">이슬람 제한 </div>
-                </div>
-              </div>
-              <div className="excluded-item-3">
-                <div className="item-info">
-                  <img className="salad" src="salad0.svg" />
-                  <div className="div6">버섯볶음 </div>
-                </div>
-                <div className="reason">
-                  <div className="div7">약물 간섭 </div>
-                </div>
-              </div>
+              {topExclude.length === 0 ? (
+                <div style={{ color: "#666" }}>이번 주 제외 항목이 없습니다.</div>
+              ) : (
+                topExclude.map((item, idx) => (
+                  <div className={`excluded-item-${idx + 1}`} key={item.name}>
+                    <div className="item-info">
+                      {/* 아이콘은 필요시 직접 매핑 */}
+                      <div className="div6">{item.name}</div>
+                    </div>
+                    <div className="reason">
+                      <div className="div7">알레르기 {item.count}회</div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-          <div className="feedback-summary">
-            <div className="feedback-header">
-              <img className="message-square" src="message-square0.svg" />
-              <div className="div8">내가 남긴 피드백 </div>
-            </div>
-            <div className="feedback-items">
-              <div className="feedback-item">
-                <div className="div9">&quot;김치가 너무 짰어요&quot; </div>
-                <div className="count-badge">
-                  <div className="_3">3건 </div>
-                </div>
-              </div>
-              <div className="feedback-item-2">
-                <div className="div9">&quot;밥이 차가워요&quot; </div>
-                <div className="count-badge">
-                  <div className="_2">2건 </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* 기타 피드백 등 나머지 UI... */}
         </div>
       </div>
       <div className="tab-bar">
-        <div className="home-tab">
+        <div className="home-tab" onClick={() => onNavigate && onNavigate("home")}>
           <img className="home" src="home0.svg" />
-          <div className="div10">홈 </div>
+          <div className="div10">홈</div>
         </div>
-        <div className="calendar-tab">
+        <div className="calendar-tab" onClick={() => onNavigate && onNavigate("week")}>
           <img className="calendar" src="calendar0.svg" />
-          <div className="div11">급식표 </div>
+          <div className="div11">급식표</div>
         </div>
-        <div className="settings-tab">
+        <div className="settings-tab" onClick={() => onNavigate && onNavigate("settings")}>
           <img className="settings" src="settings0.svg" />
-          <div className="div10">설정 </div>
+          <div className="div10">설정</div>
         </div>
-        <div className="profile-tab">
+        <div className="profile-tab" onClick={() => onNavigate && onNavigate("frame")}>
           <img className="user" src="user0.svg" />
-          <div className="div10">내정보 </div>
+          <div className="div10">내정보</div>
         </div>
       </div>
+
     </div>
   );
 };
+
+export default Week;

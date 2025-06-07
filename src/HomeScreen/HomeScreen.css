@@ -720,3 +720,106 @@
   letter-spacing: -0.01em;
   word-break: keep-all;
 }
+.simple-meal-item.warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+}
+.login-modal-bg {
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.18);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-modal {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px #0002;
+  padding: 36px 30px 24px 30px;
+  min-width: 330px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.login-tabs {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 18px;
+}
+
+.login-tabs button {
+  flex: 1;
+  background: none;
+  border: none;
+  font-size: 17px;
+  font-family: "Inter-SemiBold", "Noto Sans KR", sans-serif;
+  padding: 8px 0 8px 0;
+  cursor: pointer;
+  border-bottom: 2.5px solid #eee;
+  color: #7a7a7a;
+  transition: border 0.18s, color 0.18s;
+}
+.login-tabs button.active {
+  border-bottom: 2.5px solid #007aff;
+  color: #007aff;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-input {
+  border: 1.5px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 15px;
+  padding: 12px 12px;
+  outline: none;
+  font-family: "Inter-Regular", "Noto Sans KR", sans-serif;
+  transition: border 0.18s;
+}
+.login-input:focus {
+  border: 1.5px solid #007aff;
+}
+
+.login-btn {
+  margin-top: 6px;
+  background: linear-gradient(90deg, #1976d2 0%, #007aff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  padding: 12px 0;
+  cursor: pointer;
+  font-family: "Inter-SemiBold", "Noto Sans KR", sans-serif;
+  box-shadow: 0 2px 12px #007aff13;
+  transition: background 0.18s;
+}
+.login-btn:hover {
+  background: linear-gradient(90deg, #1565c0 0%, #005dbb 100%);
+}
+
+.login-error {
+  margin-top: 3px;
+  color: #f44336;
+  font-size: 14px;
+  text-align: center;
+}
+
+.login-cancel {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: #768ba9;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: center;
+}
+  
