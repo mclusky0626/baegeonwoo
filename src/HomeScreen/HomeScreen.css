@@ -823,3 +823,26 @@
   text-align: center;
 }
   
+.google-login-btn {
+  width: 100%;
+  padding: 10px 0;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+  color: #444;
+  border: 1.5px solid #e9ecef;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: "Inter-SemiBold", "Noto Sans KR", sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, border 0.18s;
+  gap: 8px;
+}
+.google-login-btn:hover {
+  background: #f7f7f7;
+  border-color: #b7b7b7;
+}

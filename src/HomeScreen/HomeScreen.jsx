@@ -1,11 +1,12 @@
 import "./HomeScreen.css";
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
+import { auth, db, googleProvider } from "../firebase";
 import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
+  signInWithPopup,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import DatePicker from "react-datepicker";
@@ -151,6 +152,17 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     await signOut(auth);
   };
 
+  // 구글 로그인 핸들러
+  const handleGoogleLogin = async () => {
+    setLoginError("");
+    try {
+      await signInWithPopup(auth, googleProvider);
+      setShowLogin(false);
+    } catch (err) {
+      setLoginError("구글 로그인 실패: " + err.message);
+    }
+  };
+
   return (
     <div className={"home-screen " + className}>
       {/* 로그인 버튼/유저 표시 */}
@@ -206,6 +218,19 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               </button>
               {loginError && <div className="login-error">{loginError}</div>}
             </form>
+            {/* 구글 로그인 버튼 추가 */}
+            <button
+              type="button"
+              className="google-login-btn"
+              onClick={handleGoogleLogin}
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+                style={{ width: 18, height: 18, marginRight: 8, verticalAlign: "middle" }}
+              />
+              구글로 로그인
+            </button>
             <button className="login-cancel" onClick={() => setShowLogin(false)}>
               닫기
             </button>
