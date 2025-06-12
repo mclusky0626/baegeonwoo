@@ -1,0 +1,61 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  position: relative;
+}
+
+/* 내용이 탭바와 겹치지 않도록 아래 패딩 */
+.layout > *:first-child {
+  flex: 1;
+  width: 100%;
+  padding-bottom: 90px;  /* 탭바 높이+여유 */
+}
+
+.layout > .tab-bar {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 83px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  z-index: 100;
+  padding: 8px 0 34px 0;
+}
+
+.tab-bar button {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  flex: 1;
+}
+
+.tab-bar img {
+  width: 24px;
+  height: 24px;
+}
+
+.tab-bar span {
+  font-size: 10px;
+  color: #6c757d;
+  margin-top: 4px;
+  font-family: "Inter-Regular", sans-serif;
+}
+
+@media (min-width: 600px) {
+  .layout > .tab-bar {
+    width: 375px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+  }
+}

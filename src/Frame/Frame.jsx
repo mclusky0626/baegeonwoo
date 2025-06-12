@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-
+import {Layout} from "../components/Layout"
 import black from "../imgs/black.png";
 import edit from "../imgs/edit.svg";
 import knife from "../imgs/knifeandafork.svg";
@@ -94,6 +94,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const dietType = userData.dietType || "없음";
 
   return (
+    <Layout onNavigate={onNavigate}>
     <div className={`frame ${className}`}>
       <header className="header">
         <div className="title">내 정보</div>
@@ -216,13 +217,10 @@ export const Frame = ({ onNavigate, className = "" }) => {
         </section>
       </div>
 
-      <nav className="tab-bar">
-        <button onClick={() => onNavigate("home")}><img src="home0.svg" /><span>홈</span></button>
-        <button onClick={() => onNavigate("week")}><img src="calendar0.svg" /><span>급식표</span></button>
-        <button onClick={() => onNavigate("settings")}><img src="settings1.svg" /><span>설정</span></button>
-        <button onClick={() => onNavigate("frame")}><img src="user0.svg" /><span>내정보</span></button>
-      </nav>
-    </div>
+           
+    
+          </div>
+    </Layout>
   );
 };
 

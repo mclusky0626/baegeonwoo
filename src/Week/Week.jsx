@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "./Week.css";
 import calander from "../imgs/CCC.png";
 import chart from "../imgs/chart.png";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { Layout } from "../components/Layout";
 
 // 알레르기 코드 매핑
 const allergyMap = {
@@ -14,77 +17,70 @@ const allergyMap = {
   17: "오징어", 18: "조개류"
 };
 
-const COLORS = ["#4CAF50", "#FFC107", "#F44336"];
+// 요일(월~금) 텍스트
+const DAY_LABELS = ["월", "화", "수", "목", "금"];
 
-// 이번 주 월~금 날짜 구하기
-function getWeekDates() {
-  const today = new Date();
-  const start = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+// 해당 날짜 기준으로 '그 주 월요일~금요일 날짜 리스트' 반환
+function getWeekDates(date) {
+  // date가 undefined면 오늘 날짜로
+  const ref = date ? new Date(date) : new Date();
+  const day = ref.getDay();
+  // 일요일: 0, 월요일: 1 ... 금요일: 5, 토요일: 6
+  // 월요일로 맞추기
+  const monday = new Date(ref.setDate(ref.getDate() - ((day + 6) % 7)));
   const dates = [];
   for (let i = 0; i < 5; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     dates.push({
       key: d.toISOString().slice(0, 10).replace(/-/g, ""),
-      label: `${d.getMonth() + 1}/${d.getDate()}`
+      label: `${d.getMonth() + 1}/${d.getDate()}`,
+      dateObj: new Date(d)
     });
   }
   return dates;
 }
 
 export const Week = ({ onNavigate, className, ...props }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekData, setWeekData] = useState([]);
   const [summary, setSummary] = useState({ 가능: 0, 주의: 0, 제외: 0 });
   const [daily, setDaily] = useState({});
   const [topExclude, setTopExclude] = useState([]);
   const [allergies, setAllergies] = useState([]);
-  const [schoolInfo, setSchoolInfo] = useState({
-    eduCode: "",
-    schoolCode: "",
-    schoolName: "",
-  });
-  const weekDates = getWeekDates();
 
-  // Firestore에서 유저 데이터(학교, 알레르기) 불러오기
+  const weekDates = getWeekDates(selectedDate);
+
+  // 사용자 알레르기 정보 로딩
   useEffect(() => {
-    const fetchUserSettings = async () => {
+    const fetchUserAllergy = async () => {
       const user = auth.currentUser;
       if (user) {
         const ref = doc(db, "users", user.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-          const d = snap.data();
-          setAllergies(d.allergies || []);
-          setSchoolInfo({
-            eduCode: d.eduCode || "",
-            schoolCode: d.schoolCode || "",
-            schoolName: d.schoolName || "",
-          });
+          setAllergies(snap.data().allergies || []);
         }
       }
     };
-    fetchUserSettings();
+    fetchUserAllergy();
   }, []);
 
-  // 학교정보 있을 때 급식 데이터 주간 로딩 + 분석
+  // 급식 데이터 주간 로딩 + 분석
   useEffect(() => {
     const fetchMeals = async () => {
-      if (!schoolInfo.eduCode || !schoolInfo.schoolCode) return;
       const from = weekDates[0].key;
       const to = weekDates[4].key;
-
-      // 네이스 api 호출 - 사용자가 선택한 학교 기준
-      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${schoolInfo.eduCode}&SD_SCHUL_CODE=${schoolInfo.schoolCode}&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
+      // 아래 2개는 학교코드, 교육청코드 (이 부분은 props나 context로 추후 개선 가능)
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=E10&SD_SCHUL_CODE=7361255&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
       const res = await fetch(url);
       const data = await res.json();
       const rows = data?.mealServiceDietInfo?.[1]?.row || [];
       setWeekData(rows);
 
-      // 분석
       let sum = { 가능: 0, 주의: 0, 제외: 0 };
       let perDay = {};
       let excludeCount = {};
-
       weekDates.forEach(({ key }) => { perDay[key] = { 가능: 0, 주의: 0, 제외: 0 }; });
 
       for (const meal of rows) {
@@ -111,7 +107,6 @@ export const Week = ({ onNavigate, className, ...props }) => {
 
       setSummary(sum);
       setDaily(perDay);
-
       // 제외 top3
       const top = Object.entries(excludeCount)
         .sort((a, b) => b[1] - a[1])
@@ -119,9 +114,8 @@ export const Week = ({ onNavigate, className, ...props }) => {
         .map(([name, cnt]) => ({ name, count: cnt }));
       setTopExclude(top);
     };
-    // 학교+알러지 모두 로딩됐을 때만 실행
-    if (schoolInfo.eduCode && schoolInfo.schoolCode) fetchMeals();
-  }, [allergies, schoolInfo.eduCode, schoolInfo.schoolCode]);
+    if (allergies.length > 0) fetchMeals();
+  }, [allergies, selectedDate]); // 날짜 바뀔 때마다 재요청
 
   // PieChart용
   const pieData = [
@@ -131,21 +125,33 @@ export const Week = ({ onNavigate, className, ...props }) => {
   ];
 
   return (
+    <Layout onNavigate={onNavigate} className={className}>
     <div className={"week " + className}>
       <div className="header">
         <div className="div">주간 급식 리포트</div>
       </div>
       <div className="content-container">
         <div className="content">
-          {/* 학교명 표시 */}
-          <div style={{ marginBottom: 16, color: "#222", fontWeight: 600 }}>
-            📘 내 학교: {schoolInfo.schoolName ? schoolInfo.schoolName : "설정에서 학교를 먼저 선택하세요"}
+          {/* 달력: 주간 선택 */}
+          <div style={{ margin: "12px 0", display: "flex", gap: 16, alignItems: "center" }}>
+            <span style={{ fontSize: 16 }}>조회할 주 선택: </span>
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              dateFormat="yyyy-MM-dd"
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
+              placeholderText="주 선택"
+              customInput={<button className="custom-datepicker-btn">{selectedDate ? selectedDate.toLocaleDateString() : "주 선택"}</button>}
+            />
+            <span style={{ fontSize: 13, color: "#888" }}>(월요일~금요일 급식)</span>
           </div>
           {/* 주간 요약 */}
           <div className="week-period">
             <div className="calendar-icon">
               <img className="calendar-range" src={calander} />
-              <div className="div2">이번 주 급식 요약</div>
+              <div className="div2">급식 요약</div>
             </div>
             <div className="_5-27-31-5">
               {weekDates[0].label} ~ {weekDates[4].label} (5일간)
@@ -200,7 +206,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
               {weekDates.map((d, idx) => (
                 <div className="day-column" key={d.key}>
                   <div className="day-info">
-                    <div className="div6">{["월", "화", "수", "목", "금"][idx]}요일</div>
+                    <div className="div6">{DAY_LABELS[idx]}요일</div>
                     <div className="_5-27">{d.label}</div>
                   </div>
                   <div className="day-results">
@@ -242,27 +248,12 @@ export const Week = ({ onNavigate, className, ...props }) => {
               )}
             </div>
           </div>
+          {/* 기타 피드백 등 나머지 UI... */}
         </div>
       </div>
-      <div className="tab-bar">
-        <div className="home-tab" onClick={() => onNavigate && onNavigate("home")}>
-          <img className="home" src="home0.svg" />
-          <div className="div10">홈</div>
-        </div>
-        <div className="calendar-tab" onClick={() => onNavigate && onNavigate("week")}>
-          <img className="calendar" src="calendar0.svg" />
-          <div className="div11">급식표</div>
-        </div>
-        <div className="settings-tab" onClick={() => onNavigate && onNavigate("settings")}>
-          <img className="settings" src="settings0.svg" />
-          <div className="div10">설정</div>
-        </div>
-        <div className="profile-tab" onClick={() => onNavigate && onNavigate("frame")}>
-          <img className="user" src="user0.svg" />
-          <div className="div10">내정보</div>
-        </div>
-      </div>
-    </div>
+           </div>
+    </Layout>
+      
   );
 };
 

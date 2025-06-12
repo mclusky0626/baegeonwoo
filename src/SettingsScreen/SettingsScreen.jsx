@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import "./SettingsScreen.css";
 import { db, auth } from "../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-
+import {Layout} from "../components/Layout";
 export const SettingsScreen = ({ onNavigate }) => {
   // 학교 관련
   const [schoolName, setSchoolName] = useState("");        // 사용자가 입력하는 학교명
@@ -129,6 +129,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   };
 
   return (
+    <Layout onNavigate={onNavigate}>
     <div className="settings-screen">
       <div className="header">
         <div className="div">급식 맞춤 설정</div>
@@ -252,25 +253,10 @@ export const SettingsScreen = ({ onNavigate }) => {
       </div>
 
       {/* 하단 탭바 (그대로) */}
-      <div className="tab-bar">
-        <div className="home-tab" onClick={() => onNavigate ? onNavigate("home") : alert("Home")}>
-          <img className="home" src="home0.svg" />
-          <div className="div9">홈</div>
-        </div>
-        <div className="calendar-tab" onClick={() => onNavigate ? onNavigate("week") : alert("급식표")}>
-          <img className="calendar2" src="calendar1.svg" />
-          <div className="div10">급식표</div>
-        </div>
-        <div className="settings-tab">
-          <img className="settings2" src="settings1.svg" />
-          <div className="div10" style={{ color: "#007aff", fontWeight: 600 }}>설정</div>
-        </div>
-        <div className="profile-tab" onClick={() => onNavigate ? onNavigate("frame") : alert("내정보")}>
-          <img className="user" src="user0.svg" />
-          <div className="div10">내정보</div>
-        </div>
-      </div>
+      
+      
     </div>
+    </Layout>
   );
 };
 

@@ -11,7 +11,7 @@ import {
 import { doc, getDoc } from "firebase/firestore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import { Layout } from "../components/Layout";
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   // 급식/학교 관련
   const [meals, setMeals] = useState([]);
@@ -164,16 +164,17 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   };
 
   return (
-    <div className={"home-screen " + className}>
-      {/* 로그인 버튼/유저 표시 */}
-      <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
-        {user ? (
-          <span style={{ fontSize: 13 }}>
-            {user.email}
-            <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
-              로그아웃
-            </button>
-          </span>
+    <Layout onNavigate={onNavigate} className={className} {...props}>
+      <div className={"home-screen " + className}>
+        {/* 로그인 버튼/유저 표시 */}
+        <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
+          {user ? (
+            <span style={{ fontSize: 13 }}>
+              {user.email}
+              <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
+                로그아웃
+              </button>
+            </span>
         ) : (
           <button onClick={() => setShowLogin(true)} style={{ fontSize: 13 }}>
             로그인/회원가입
@@ -308,25 +309,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         <img className="message-square" src="message-square0.svg" />
         <div className="div8">피드백 남기기 </div>
       </div>
-      <div className="tab-bar">
-        <div className="home-tab" onClick={() => onNavigate("home")}>
-          <img className="home" src="home0.svg" />
-          <div className="div9">홈</div>
-        </div>
-        <div className="calendar-tab" onClick={() => onNavigate("week")}>
-          <img className="calendar2" src="calendar1.svg" />
-          <div className="div10">급식표</div>
-        </div>
-        <div className="settings-tab" onClick={() => onNavigate("settings")}>
-          <img className="settings2" src="settings1.svg" />
-          <div className="div10">설정</div>
-        </div>
-        <div className="profile-tab" onClick={() => onNavigate("frame")}>
-          <img className="user" src="user0.svg" />
-          <div className="div10">내정보</div>
-        </div>
+      
       </div>
-    </div>
+    
+    </Layout>
   );
 };
 
