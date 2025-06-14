@@ -51,6 +51,10 @@
   font-family: "Inter-Regular", sans-serif;
 }
 
+.tab-bar button.active span {
+  color: #007aff;
+}
+
 @media (min-width: 600px) {
   .layout > .tab-bar {
     width: 375px;
