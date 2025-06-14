@@ -17,6 +17,24 @@ import bell from "../imgs/bell.png";
 import check from "../imgs/checkmate.svg";
 import 'i18next'
 
+const allergyMap = {
+  1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
+  7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
+  12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
+  17: "오징어", 18: "조개류"
+};
+
+const getCurrentWeekRange = () => {
+  const today = new Date();
+  const day = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((day + 6) % 7));
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, "");
+  return { from: fmt(monday), to: fmt(friday) };
+};
+
 export const Frame = ({ onNavigate, className = "" }) => {
   const { t, i18n } = useTranslation();
   const [userData, setUserData] = useState(null);
@@ -26,6 +44,8 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const [gradeInput, setGradeInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [showLangSelect, setShowLangSelect] = useState(false);
+  const [stats, setStats] = useState({ good: 0, caution: 0, excluded: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // 유저 데이터 로딩
   useEffect(() => {
@@ -46,6 +66,42 @@ export const Frame = ({ onNavigate, className = "" }) => {
     fetchUserData();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!userData) return;
+      const { eduCode, schoolCode, allergies = [] } = userData;
+      if (!eduCode || !schoolCode) { setStatsLoading(false); return; }
+      setStatsLoading(true);
+      try {
+        const { from, to } = getCurrentWeekRange();
+        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${eduCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+        let count = { good: 0, caution: 0, excluded: 0 };
+        for (const meal of rows) {
+          const dishes = meal.DDISH_NM.split("<br/>");
+          for (const dish of dishes) {
+            const match = dish.match(/\(([^)]+)\)/);
+            const codes = match ? match[1].split(".").map(Number) : [];
+            const ingredients = codes.map((c) => allergyMap[c]).filter(Boolean);
+            if (ingredients.length && allergies.length) {
+              const overlap = ingredients.filter((i) => allergies.includes(i));
+              if (overlap.length) { count.caution++; continue; }
+            }
+            count.good++;
+          }
+        }
+        setStats(count);
+      } catch (e) {
+        console.error(e);
+        setStats({ good: 0, caution: 0, excluded: 0 });
+      }
+      setStatsLoading(false);
+    };
+    fetchStats();
+  }, [userData]);
 
   const handleSave = async () => {
     if (!auth.currentUser) return;
@@ -96,6 +152,11 @@ export const Frame = ({ onNavigate, className = "" }) => {
     ? userData.allergies.join(", ")
     : t("none");
   const dietType = userData.dietType || t("none");
+
+  const total = stats.good + stats.caution + stats.excluded;
+  const goodPct = total ? Math.round((stats.good / total) * 100) : 0;
+  const cautionPct = total ? Math.round((stats.caution / total) * 100) : 0;
+  const excludePct = total ? Math.round((stats.excluded / total) * 100) : 0;
 
   return (
     <div className={`frame ${className}`}>
@@ -169,9 +230,15 @@ export const Frame = ({ onNavigate, className = "" }) => {
             <h4>{t("my_meal_stats")}</h4>
           </div>
           <div className="stats-row">
-            <div><img src={ok} alt={t("good")} /> 70%</div>
-            <div><img src={warn} alt={t("caution")} /> 10%</div>
-            <div><img src={no} alt={t("excluded")} /> 20%</div>
+            {statsLoading ? (
+              <div>{t("loading")}</div>
+            ) : (
+              <>
+                <div><img src={ok} alt={t("good")} /> {goodPct}%</div>
+                <div><img src={warn} alt={t("caution")} /> {cautionPct}%</div>
+                <div><img src={no} alt={t("excluded")} /> {excludePct}%</div>
+              </>
+            )}
           </div>
           <button className="detail-btn">{t("see_details")}</button>
         </section>
