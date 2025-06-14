@@ -129,7 +129,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   };
 
   return (
-    <Layout onNavigate={onNavigate}>
+    
     <div className="settings-screen">
       <div className="header">
         <div className="div">급식 맞춤 설정</div>
@@ -256,7 +256,7 @@ export const SettingsScreen = ({ onNavigate }) => {
       
       
     </div>
-    </Layout>
+    
   );
 };
 

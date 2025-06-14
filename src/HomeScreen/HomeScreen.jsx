@@ -164,7 +164,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   };
 
   return (
-    <Layout onNavigate={onNavigate} className={className} {...props}>
+    
       <div className={"home-screen " + className}>
         {/* 로그인 버튼/유저 표시 */}
         <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
@@ -262,7 +262,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               locale="ko"
             />
           </div>
-          <img className="settings" src="settings0.svg" />
+          
         </div>
         <div className="school-info">
           <img className="school" src="school0.svg" />
@@ -312,7 +312,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       
       </div>
     
-    </Layout>
+    
   );
 };
 

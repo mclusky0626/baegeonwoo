@@ -125,7 +125,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
   ];
 
   return (
-    <Layout onNavigate={onNavigate} className={className}>
+    
     <div className={"week " + className}>
       <div className="header">
         <div className="div">주간 급식 리포트</div>
@@ -252,7 +252,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
         </div>
       </div>
            </div>
-    </Layout>
+    
       
   );
 };

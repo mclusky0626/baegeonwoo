@@ -94,7 +94,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const dietType = userData.dietType || "없음";
 
   return (
-    <Layout onNavigate={onNavigate}>
+    
     <div className={`frame ${className}`}>
       <header className="header">
         <div className="title">내 정보</div>
@@ -220,7 +220,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
            
     
           </div>
-    </Layout>
+    
   );
 };
 
