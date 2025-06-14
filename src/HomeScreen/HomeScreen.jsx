@@ -1,5 +1,6 @@
 import "./HomeScreen.css";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { auth, db, googleProvider } from "../firebase";
 import {
   signInWithEmailAndPassword,
@@ -12,13 +13,16 @@ import { doc, getDoc } from "firebase/firestore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
+
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
+  const { t, i18n } = useTranslation();
+
   // 급식/학교 관련
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [todayStr, setTodayStr] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [schoolName, setSchoolName] = useState("학교를 선택하세요");
+  const [schoolName, setSchoolName] = useState(t("select_school"));
   const [eduCode, setEduCode] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
 
@@ -50,15 +54,21 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     const yyyy = date.getFullYear();
     const mm = date.getMonth() + 1;
     const dd = date.getDate();
-    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+    // 언어에 따라 요일명
+    const dayNames = i18n.language === "en"
+      ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      : ["일", "월", "화", "수", "목", "금", "토"];
     const day = dayNames[date.getDay()];
-    return `${yyyy}년 ${mm}월 ${dd}일 (${day})`;
+    return i18n.language === "en"
+      ? `${yyyy}-${mm}-${dd} (${day})`
+      : `${yyyy}년 ${mm}월 ${dd}일 (${day})`;
   }
 
   // 날짜 선택하면 UI에 반영
   useEffect(() => {
     setTodayStr(getDateDisplay(selectedDate));
-  }, [selectedDate]);
+    // eslint-disable-next-line
+  }, [selectedDate, i18n.language]);
 
   // 로그인 감시
   useEffect(() => {
@@ -76,20 +86,21 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         const snap = await getDoc(ref);
         if (snap.exists()) {
           const d = snap.data();
-          setSchoolName(d.schoolName || "학교를 선택하세요");
+          setSchoolName(d.schoolName || t("select_school"));
           setEduCode(d.eduCode || "");
           setSchoolCode(d.schoolCode || "");
           setAllergies(d.allergies || []);
         }
       } else {
-        setSchoolName("학교를 선택하세요");
+        setSchoolName(t("select_school"));
         setEduCode("");
         setSchoolCode("");
         setAllergies([]);
       }
     }
     fetchUserSettings();
-  }, [user]);
+    // eslint-disable-next-line
+  }, [user, i18n.language]);
 
   // 급식 데이터 불러오기 (학교/날짜 바뀔 때마다)
   useEffect(() => {
@@ -112,7 +123,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
             const name = txt.replace(/\s*\([^)]+\)/, "").trim();
             const match = txt.match(/\(([^)]+)\)/);
             const codes = match ? match[1].split(".").map(Number) : [];
-            const ingredients = codes.map((code) => allergyMap[code]).filter(Boolean);
+            const ingredients = codes.map((code) => allergyMap[code] || code).filter(Boolean);
             return { name, ingredients };
           });
           setMeals(dishList);
@@ -125,7 +136,8 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       setLoading(false);
     }
     fetchMeals();
-  }, [selectedDate, eduCode, schoolCode]);
+    // eslint-disable-next-line
+  }, [selectedDate, eduCode, schoolCode, i18n.language]);
 
   // 로그인/회원가입/로그아웃
   const handleLogin = async (e) => {
@@ -135,7 +147,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
     } catch (err) {
-      setLoginError("로그인 실패! 이메일/비밀번호를 확인하세요.");
+      setLoginError(t("login_failed"));
     }
   };
   const handleRegister = async (e) => {
@@ -145,7 +157,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
     } catch (err) {
-      setLoginError("회원가입 실패: " + err.message);
+      setLoginError(t("register_failed") + err.message);
     }
   };
   const handleLogout = async () => {
@@ -159,25 +171,24 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
     } catch (err) {
-      setLoginError("구글 로그인 실패: " + err.message);
+      setLoginError(t("google_login") + ": " + err.message);
     }
   };
 
   return (
-    
-      <div className={"home-screen " + className}>
-        {/* 로그인 버튼/유저 표시 */}
-        <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
-          {user ? (
-            <span style={{ fontSize: 13 }}>
-              {user.email}
-              <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
-                로그아웃
-              </button>
-            </span>
+    <div className={"home-screen " + className}>
+      {/* 로그인 버튼/유저 표시 */}
+      <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
+        {user ? (
+          <span style={{ fontSize: 13 }}>
+            {user.email}
+            <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
+              {t("logout")}
+            </button>
+          </span>
         ) : (
           <button onClick={() => setShowLogin(true)} style={{ fontSize: 13 }}>
-            로그인/회원가입
+            {t("login")}/{t("register")}
           </button>
         )}
       </div>
@@ -188,11 +199,11 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               <button
                 className={loginTab === "login" ? "active" : ""}
                 onClick={() => setLoginTab("login")}
-              >로그인</button>
+              >{t("login")}</button>
               <button
                 className={loginTab === "register" ? "active" : ""}
                 onClick={() => setLoginTab("register")}
-              >회원가입</button>
+              >{t("register")}</button>
             </div>
             <form
               onSubmit={loginTab === "login" ? handleLogin : handleRegister}
@@ -202,7 +213,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 type="email"
                 value={email}
                 required
-                placeholder="이메일"
+                placeholder={t("email")}
                 onChange={e => setEmail(e.target.value)}
                 className="login-input"
               />
@@ -210,12 +221,12 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 type="password"
                 value={password}
                 required
-                placeholder="비밀번호"
+                placeholder={t("password")}
                 onChange={e => setPassword(e.target.value)}
                 className="login-input"
               />
               <button type="submit" className="login-btn">
-                {loginTab === "login" ? "로그인" : "회원가입"}
+                {loginTab === "login" ? t("login") : t("register")}
               </button>
               {loginError && <div className="login-error">{loginError}</div>}
             </form>
@@ -230,10 +241,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 alt="Google"
                 style={{ width: 18, height: 18, marginRight: 8, verticalAlign: "middle" }}
               />
-              구글로 로그인
+              {t("google_login")}
             </button>
             <button className="login-cancel" onClick={() => setShowLogin(false)}>
-              닫기
+              {t("close")}
             </button>
           </div>
         </div>
@@ -248,7 +259,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
             <DatePicker
               selected={selectedDate}
               onChange={(date) => { setSelectedDate(date); setTodayStr(getDateDisplay(date)); }}
-              dateFormat="yyyy년 MM월 dd일"
+              dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
               customInput={
                 <span className="_2025-5-28" style={{ cursor: "pointer", fontWeight: 600 }}>
                   {todayStr}
@@ -259,10 +270,9 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               minDate={new Date(2020, 1, 1)}
               maxDate={new Date(2099, 12, 31)}
               showPopperArrow={false}
-              locale="ko"
+              locale={i18n.language}
             />
           </div>
-          
         </div>
         <div className="school-info">
           <img className="school" src="school0.svg" />
@@ -276,22 +286,22 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           <div className="meal-title">
             <img className="utensils" src="utensils0.svg" />
             <div className="div2">
-              {getDateDisplay(selectedDate)} 급식
+              {getDateDisplay(selectedDate)} {t("meal")}
             </div>
           </div>
           <div className="meal-items">
             {loading ? (
-              <div>로딩 중...</div>
+              <div>{t("loading")}</div>
             ) : meals.length === 0 ? (
-              <div>급식 데이터가 없습니다.</div>
+              <div>{t("no_meal_data")}</div>
             ) : (
               meals.map((menu, idx) => {
                 const hasAllergy = menu.ingredients.some(i => allergies.includes(i));
                 const className = hasAllergy ? "simple-meal-item warning" : "simple-meal-item";
                 const icon = hasAllergy ? "⚠️" : "✅";
                 const label = hasAllergy
-                  ? `알레르기 주의: ${menu.ingredients.join(", ")}`
-                  : "먹을 수 있어요";
+                  ? `${t("allergy_warning")}: ${menu.ingredients.map((x) => t(x)).join(", ")}`
+                  : t("can_eat");
                 return (
                   <div key={idx} className={className}>
                     <span className="meal-name">{icon} {menu.name}</span>
@@ -307,12 +317,9 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       </div>
       <div className="feedback-button">
         <img className="message-square" src="message-square0.svg" />
-        <div className="div8">피드백 남기기 </div>
+        <div className="div8">{t("feedback")}</div>
       </div>
-      
-      </div>
-    
-    
+    </div>
   );
 };
 

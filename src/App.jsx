@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import i18n from "./i18n";
 import { HomeScreen } from "./HomeScreen/HomeScreen";
 import { FeedbackScreen } from "./FeedbackScreen/FeedbackScreen";
 import { SettingsScreen } from "./SettingsScreen/SettingsScreen";

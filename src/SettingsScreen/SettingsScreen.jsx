@@ -1,14 +1,18 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import "./SettingsScreen.css";
 import { db, auth } from "../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import {Layout} from "../components/Layout";
+import { Layout } from "../components/Layout";
+
 export const SettingsScreen = ({ onNavigate }) => {
+  const { t, i18n } = useTranslation();
+
   // 학교 관련
-  const [schoolName, setSchoolName] = useState("");        // 사용자가 입력하는 학교명
-  const [schoolList, setSchoolList] = useState([]);        // 추천 학교 리스트
-  const [eduCode, setEduCode] = useState("");              // 시도교육청코드
-  const [schoolCode, setSchoolCode] = useState("");        // 행정표준코드
+  const [schoolName, setSchoolName] = useState("");
+  const [schoolList, setSchoolList] = useState([]);
+  const [eduCode, setEduCode] = useState("");
+  const [schoolCode, setSchoolCode] = useState("");
 
   // 기타 설정
   const [religion, setReligion] = useState([]);
@@ -18,6 +22,14 @@ export const SettingsScreen = ({ onNavigate }) => {
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [saveMsg, setSaveMsg] = useState("");
   const inputRef = useRef(null);
+
+  // 번역 가능한 옵션들
+  const religions = [
+    "이슬람", "힌두교", "불교", "기독교", "없음"
+  ];
+  const dietTypes = [
+    "일반식", "비건", "락토오보", "페스코", "기타"
+  ];
   const allergyList = [
     "난류", "우유", "메밀", "땅콩", "대두", "밀", "고등어", "게", "새우",
     "돼지고기", "복숭아", "토마토", "아황산류", "호두", "닭고기", "쇠고기", "오징어", "조개류"
@@ -69,9 +81,6 @@ export const SettingsScreen = ({ onNavigate }) => {
     fetchData();
   }, []);
 
-  const religions = ["이슬람", "힌두교", "불교", "기독교", "없음"];
-  const dietTypes = ["일반식", "비건", "락토오보", "페스코", "기타"];
-
   // 종교 변경
   const handleReligionChange = (r) => {
     setReligion((prev) =>
@@ -111,7 +120,7 @@ export const SettingsScreen = ({ onNavigate }) => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        setSaveMsg("로그인이 필요합니다");
+        setSaveMsg(t("login_required"));
         return;
       }
       await setDoc(doc(db, "users", user.uid), {
@@ -121,28 +130,27 @@ export const SettingsScreen = ({ onNavigate }) => {
         allergies,
         updatedAt: new Date()
       }, { merge: true });
-      setSaveMsg("✅ 저장 완료!");
+      setSaveMsg(t("save_success"));
       setTimeout(() => setSaveMsg(""), 2000);
     } catch (e) {
-      setSaveMsg("저장 실패: " + e.message);
+      setSaveMsg(t("save_failed") + e.message);
     }
   };
 
   return (
-    
     <div className="settings-screen">
       <div className="header">
-        <div className="div">급식 맞춤 설정</div>
+        <div className="div">{t("settings_title")}</div>
       </div>
       <div className="content">
         {/* 학교 검색/선택 */}
         <div className="school-section">
-          <div className="div2">학교 선택</div>
+          <div className="div2">{t("select_school")}</div>
           <input
             ref={inputRef}
             className="school-input-box"
             type="text"
-            placeholder="학교명을 입력하세요"
+            placeholder={t("school_input_placeholder")}
             value={schoolName}
             onChange={e => setSchoolName(e.target.value)}
             autoComplete="off"
@@ -164,7 +172,9 @@ export const SettingsScreen = ({ onNavigate }) => {
 
         {/* 종교 선택 */}
         <div className="religion-section">
-          <div className="div4">종교 선택 (중복 선택 가능)</div>
+          <div className="div4">
+            {t("religion_select")} <span style={{ fontSize: 13 }}>{t("religion_multi")}</span>
+          </div>
           <div className="religion-options">
             {religions.map((r) => (
               <label
@@ -177,7 +187,7 @@ export const SettingsScreen = ({ onNavigate }) => {
                   onChange={() => handleReligionChange(r)}
                   style={{ display: "none" }}
                 />
-                {r}
+                {t(r)}
               </label>
             ))}
           </div>
@@ -185,7 +195,7 @@ export const SettingsScreen = ({ onNavigate }) => {
 
         {/* 식생활유형 */}
         <div className="diet-section">
-          <div className="div2">식생활 유형</div>
+          <div className="div2">{t("diet_type")}</div>
           <div className="diet-options">
             {dietTypes.map((d) => (
               <label
@@ -199,7 +209,7 @@ export const SettingsScreen = ({ onNavigate }) => {
                   onChange={() => handleDietChange(d)}
                   style={{ display: "none" }}
                 />
-                {d}
+                {t(d)}
               </label>
             ))}
           </div>
@@ -207,12 +217,12 @@ export const SettingsScreen = ({ onNavigate }) => {
 
         {/* 알러지 */}
         <div className="allergy-section">
-          <div className="div2">알레르기 체크</div>
+          <div className="div2">{t("allergy_check")}</div>
           <div className="allergy-input">
             <input
               className="allergy-input-box"
               type="text"
-              placeholder="예: 우유, 밀, 땅콩 등"
+              placeholder={t("allergy_input_placeholder")}
               value={allergyInput}
               onChange={handleAllergyInputChange}
             />
@@ -226,7 +236,7 @@ export const SettingsScreen = ({ onNavigate }) => {
                   className="suggestion-item"
                   onClick={() => handleSelectSuggestion(item)}
                 >
-                  {item}
+                  {t(item)}
                 </li>
               ))}
             </ul>
@@ -235,7 +245,7 @@ export const SettingsScreen = ({ onNavigate }) => {
           <div className="selected-allergies">
             {allergies.map((a) => (
               <span className="allergy-badge" key={a}>
-                {a}
+                {t(a)}
                 <button className="remove-btn" onClick={() => handleRemoveAllergy(a)}>
                   x
                 </button>
@@ -247,16 +257,11 @@ export const SettingsScreen = ({ onNavigate }) => {
 
       <div className="bottom-section">
         <button className="save-button" onClick={handleSave}>
-          저장하기
+          {t("save")}
         </button>
         {saveMsg && <div style={{ marginTop: 8, color: "#28a745" }}>{saveMsg}</div>}
       </div>
-
-      {/* 하단 탭바 (그대로) */}
-      
-      
     </div>
-    
   );
 };
 
