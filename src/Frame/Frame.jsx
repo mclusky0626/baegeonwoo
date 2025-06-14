@@ -211,9 +211,16 @@ export const Frame = ({ onNavigate, className = "" }) => {
                       English
                     </button>
                   </li>
+                  <li>
+                    <button style={{ width: "100%", padding: "10px 20px", background: "none", border: "none", textAlign: "left" }}
+                      onClick={() => { i18n.changeLanguage("zh"); setShowLangSelect(false); }}>
+                      中文
+                    </button>
+                  </li>
                 </ul>
               </div>
             )}
+
           </div>
         </section>
 
