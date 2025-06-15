@@ -98,6 +98,8 @@
   "account": "账号",
   "account_setting": "账号设置",
   "privacy_policy": "隐私政策",
+  "privacy_policy_title": "隐私政策",
+  "privacy_policy_body": "我们仅收集提供服务所需的最少个人信息，并安全地保护这些数据。所收集的信息将根据法律保存，用户可随时要求删除。",
   "count_unit": "个",
   "day_of_week": "日"
 }

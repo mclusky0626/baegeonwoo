@@ -81,6 +81,8 @@
   "change": "Change",
   "account_setting": "Account Setting",
   "privacy_policy": "Privacy Policy",
+  "privacy_policy_title": "Privacy Policy",
+  "privacy_policy_body": "We collect the minimal amount of personal data required to provide our service and keep it secure. Collected data is stored in accordance with the law and can be deleted upon request.",
   "good": "Good",
   "edit_name": "Edit Name",
   "edit_school": "Edit School",

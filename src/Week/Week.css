@@ -9,7 +9,7 @@
   gap: 0px;
   align-items: flex-start;
   justify-content: flex-start;
-  height: 1095px;
+  min-height: 100vh;
   position: relative;
 }
 .week .status-bar {
@@ -106,8 +106,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   align-self: stretch;
-  flex-shrink: 0;
-  height: 712px;
+  flex: 1;
   position: relative;
 }
 .week .content {
