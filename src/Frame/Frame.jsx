@@ -1,5 +1,6 @@
 import "./Frame.css";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -37,6 +38,7 @@ const getCurrentWeekRange = () => {
 
 export const Frame = ({ onNavigate, className = "" }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -320,7 +322,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
           </div>
           <div className="btn-group">
             <button className="logout-btn" onClick={handleLogout}>{t("logout")}</button>
-            <button className="privacy-btn">{t("privacy_policy")}</button>
+            <button className="privacy-btn" onClick={() => navigate("/privacy")}>{t("privacy_policy")}</button>
           </div>
         </section>
       </div>

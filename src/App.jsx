@@ -5,6 +5,7 @@ import { HomeScreen } from "./HomeScreen/HomeScreen";
 import { FeedbackScreen } from "./FeedbackScreen/FeedbackScreen";
 import { SettingsScreen } from "./SettingsScreen/SettingsScreen";
 import { Frame } from "./Frame/Frame";
+import { PrivacyPolicy } from "./PrivacyPolicy/PrivacyPolicy";
 import { Week } from "./Week/Week";
 import { Layout } from "./components/Layout";
 // (선택) NotFound 페이지
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/feedback" element={<FeedbackScreen />} />
         <Route path="/week" element={<Week />} />
         <Route path="/frame" element={<Frame />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         
         <Route path="" element={<NotFound />} />
       </Routes>
