@@ -9,7 +9,7 @@
   gap: 0px;
   align-items: flex-start;
   justify-content: flex-start;
-  height: 913px;
+  min-height: 100vh;
   position: relative;
 }
 .home-screen .status-bar {
@@ -147,8 +147,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   align-self: stretch;
-  flex-shrink: 0;
-  height: 707px;
+  flex: 1;
   position: relative;
 }
 .home-screen .content {
