@@ -42,8 +42,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
   const [userData, setUserData] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [nameInput, setNameInput] = useState("");
-  const [schoolInput, setSchoolInput] = useState("");
-  const [gradeInput, setGradeInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [showLangSelect, setShowLangSelect] = useState(false);
   const [stats, setStats] = useState({ good: 0, caution: 0, excluded: 0 });
@@ -60,8 +58,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
         const data = snap.data();
         setUserData(data);
         setNameInput(data.name || "");
-        setSchoolInput(data.schoolName || t("no_school"));
-        setGradeInput(data.grade || "");
       }
       setLoading(false);
     };
@@ -111,10 +107,8 @@ export const Frame = ({ onNavigate, className = "" }) => {
     const ref = doc(db, "users", uid);
     await updateDoc(ref, {
       name: nameInput,
-      schoolName: schoolInput,
-      grade: gradeInput,
     });
-    setUserData({ ...userData, name: nameInput, schoolName: schoolInput, grade: gradeInput });
+    setUserData({ ...userData, name: nameInput });
     setEditMode(false);
   };
 
@@ -146,7 +140,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
   // DB 구조 기준 변수명
   const name = userData.name || t("no_name");
   const school = userData.schoolName || t("no_school");
-  const grade = userData.grade || t("no_grade");
   const religion = (userData.religion && userData.religion.length > 0)
     ? userData.religion.join(", ")
     : t("none");
@@ -194,14 +187,6 @@ export const Frame = ({ onNavigate, className = "" }) => {
               </div>
               <div className="row school-row">
                 <span className="school">{school}</span>
-                <button className="edit-btn" onClick={() => setEditMode(true)}>
-                  <img src={edit} alt={t("edit_school")} />
-                </button>
-                <span className="divider">|</span>
-                <span className="grade">{grade}</span>
-                <button className="edit-btn" onClick={() => setEditMode(true)}>
-                  <img src={edit} alt={t("edit_grade")} />
-                </button>
               </div>
             </div>
           </div>
