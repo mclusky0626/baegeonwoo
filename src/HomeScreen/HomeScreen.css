@@ -723,6 +723,10 @@
   background-color: #fff3cd;
   border: 1px solid #ffeeba;
 }
+.simple-meal-item.exclude {
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+}
 .login-modal-bg {
   position: fixed;
   left: 0; top: 0; width: 100vw; height: 100vh;
