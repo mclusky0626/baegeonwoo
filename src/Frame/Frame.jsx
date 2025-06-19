@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import black from "../imgs/black.png";
 import edit from "../imgs/edit.svg";
 import knife from "../imgs/knifeandafork.svg";
@@ -36,7 +36,7 @@ const getCurrentWeekRange = () => {
   return { from: fmt(monday), to: fmt(friday) };
 };
 
-export const Frame = ({ onNavigate, className = "" }) => {
+export const Frame = ({ className = "" }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
@@ -49,10 +49,13 @@ export const Frame = ({ onNavigate, className = "" }) => {
 
   // 유저 데이터 로딩
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!auth.currentUser) return setLoading(false);
-      const uid = auth.currentUser.uid;
-      const ref = doc(db, "users", uid);
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (!u) {
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+      const ref = doc(db, "users", u.uid);
       const snap = await getDoc(ref);
       if (snap.exists()) {
         const data = snap.data();
@@ -60,9 +63,8 @@ export const Frame = ({ onNavigate, className = "" }) => {
         setNameInput(data.name || "");
       }
       setLoading(false);
-    };
-    fetchUserData();
-    // eslint-disable-next-line
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -130,7 +132,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
         <h2>{t("login_required")}</h2>
         <p>{t("login_required_detail")}</p>
         <div className="btn-group">
-          <button onClick={() => onNavigate("home")}>{t("go_home")}</button>
+          <button onClick={() => navigate("/")}>{t("go_home")}</button>
           <button onClick={() => window.location.reload()}>{t("login_again")}</button>
         </div>
       </div>
@@ -157,7 +159,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
     <div className={`frame ${className}`}>
       <header className="header">
         <div className="title">{t("profile")}</div>
-        <button className="settings-btn" onClick={() => onNavigate("settings")}>
+        <button className="settings-btn" onClick={() => navigate("/settings")}>
           <img src="settings0.svg" alt={t("settings")} />
         </button>
       </header>
@@ -199,7 +201,7 @@ export const Frame = ({ onNavigate, className = "" }) => {
               <img src={knife} alt="" />
               <h4>{t("meal_filter")}</h4>
             </div>
-            <button className="edit-btn" onClick={() => onNavigate("settings")}>
+            <button className="edit-btn" onClick={() => navigate("/settings")}>
               {t("edit")}
             </button>
           </div>
