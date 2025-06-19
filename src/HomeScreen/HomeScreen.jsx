@@ -13,6 +13,7 @@ import { doc, getDoc } from "firebase/firestore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
+import { violatesReligion } from "../utils/religionRules";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const { t, i18n } = useTranslation();
@@ -34,6 +35,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [loginTab, setLoginTab] = useState("login");
   const [allergies, setAllergies] = useState([]);
+  const [religions, setReligions] = useState([]);
 
   // 알레르기 코드 → 이름 매핑
   const allergyMap = {
@@ -90,12 +92,14 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           setEduCode(d.eduCode || "");
           setSchoolCode(d.schoolCode || "");
           setAllergies(d.allergies || []);
+          setReligions(d.religion || []);
         }
       } else {
         setSchoolName(t("select_school"));
         setEduCode("");
         setSchoolCode("");
         setAllergies([]);
+        setReligions([]);
       }
     }
     fetchUserSettings();
@@ -297,11 +301,19 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
             ) : (
               meals.map((menu, idx) => {
                 const hasAllergy = menu.ingredients.some(i => allergies.includes(i));
-                const className = hasAllergy ? "simple-meal-item warning" : "simple-meal-item";
-                const icon = hasAllergy ? "⚠️" : "✅";
-                const label = hasAllergy
-                  ? `${t("allergy_warning")}: ${menu.ingredients.map((x) => t(x)).join(", ")}`
-                  : t("can_eat");
+                const violates = violatesReligion(menu.name, religions);
+                let className = "simple-meal-item";
+                let icon = "✅";
+                let label = t("can_eat");
+                if (violates) {
+                  className += " exclude";
+                  icon = "❌";
+                  label = t("religion_violation");
+                } else if (hasAllergy) {
+                  className += " warning";
+                  icon = "⚠️";
+                  label = `${t("allergy_warning")}: ${menu.ingredients.map((x) => t(x)).join(", ")}`;
+                }
                 return (
                   <div key={idx} className={className}>
                     <span className="meal-name">{icon} {menu.name}</span>

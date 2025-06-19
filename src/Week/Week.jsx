@@ -9,6 +9,7 @@ import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Layout } from "../components/Layout";
+import { violatesReligion } from "../utils/religionRules";
 
 // 알레르기 코드 매핑(항상 한글로!)
 const allergyMap = {
@@ -47,23 +48,26 @@ export const Week = ({ onNavigate, className, ...props }) => {
   const [daily, setDaily] = useState({});
   const [topExclude, setTopExclude] = useState([]);
   const [allergies, setAllergies] = useState([]);
+  const [religions, setReligions] = useState([]);
 
   const weekDates = getWeekDates(selectedDate);
   const DAY_LABELS = i18n.language === "en" ? DAY_LABELS_EN : DAY_LABELS_KO;
 
-  // 사용자 알레르기 정보 로딩
+  // 사용자 알레르기/종교 정보 로딩
   useEffect(() => {
-    const fetchUserAllergy = async () => {
+    const fetchUserSettings = async () => {
       const user = auth.currentUser;
       if (user) {
         const ref = doc(db, "users", user.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-          setAllergies(snap.data().allergies || []);
+          const data = snap.data();
+          setAllergies(data.allergies || []);
+          setReligions(data.religion || []);
         }
       }
     };
-    fetchUserAllergy();
+    fetchUserSettings();
   }, []);
 
   // 급식 데이터 주간 로딩 + 분석
@@ -93,7 +97,10 @@ export const Week = ({ onNavigate, className, ...props }) => {
           const ingredients = codes.map((c) => allergyMap[c]).filter(Boolean);
           // 분류
           let category = "가능";
-          if (ingredients.length && allergies.length) {
+          if (violatesReligion(name, religions)) {
+            category = "제외";
+            excludeCount[name] = (excludeCount[name] || 0) + 1;
+          } else if (ingredients.length && allergies.length) {
             const overlap = ingredients.filter((i) => allergies.includes(i));
             if (overlap.length) {
               category = "주의";
