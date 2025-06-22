@@ -49,6 +49,7 @@
   "meal": "급식",
   "allergy_warning": "알레르기 주의",
   "religion_violation": "종교상 금지",
+  "diet_violation": "식습관상 금지",
   "can_eat": "먹을 수 있어요",
   "feedback": "피드백 남기기",
   "date": "날짜",
