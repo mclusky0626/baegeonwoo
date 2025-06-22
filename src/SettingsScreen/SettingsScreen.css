@@ -108,7 +108,6 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 83px;
   position: fixed;      /* ✅ 항상 하단 고정 */
   bottom: 0;
   left: 0;

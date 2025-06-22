@@ -1,9 +1,10 @@
 .layout {
-  min-height: 100vh;
+  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   background: #fff;
   position: relative;
+  margin-bottom: 64px;
 }
 
 /* 내용이 탭바와 겹치지 않도록 아래 패딩 */
@@ -18,14 +19,13 @@
   left: 0;
   bottom: 0;
   width: 100vw;
-  height: 83px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   background: #f8f9fa;
   border-top: 1px solid #e9ecef;
   z-index: 100;
-  padding: 8px 0 34px 0;
+  padding: 8px 0 10px 0;
 }
 
 .tab-bar button {
