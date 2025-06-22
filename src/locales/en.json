@@ -23,6 +23,7 @@
   "meal": "Meal",
   "allergy_warning": "Allergy Warning",
   "religion_violation": "Not allowed by religion",
+  "diet_violation": "Not allowed by diet",
   "can_eat": "Can eat",
   "feedback": "Leave feedback",
   "date": "Date",

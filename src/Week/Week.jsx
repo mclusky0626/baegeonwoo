@@ -10,6 +10,7 @@ import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Layout } from "../components/Layout";
 import { violatesReligion } from "../utils/religionRules";
+import { violatesDiet } from "../utils/dietRules";
 
 // 알레르기 코드 매핑(항상 한글로!)
 const allergyMap = {
@@ -49,6 +50,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
   const [topExclude, setTopExclude] = useState([]);
   const [allergies, setAllergies] = useState([]);
   const [religions, setReligions] = useState([]);
+  const [dietType, setDietType] = useState("");
 
   const weekDates = getWeekDates(selectedDate);
   const DAY_LABELS = i18n.language === "en" ? DAY_LABELS_EN : DAY_LABELS_KO;
@@ -64,6 +66,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
           const data = snap.data();
           setAllergies(data.allergies || []);
           setReligions(data.religion || []);
+          setDietType(data.dietType || "");
         }
       }
     };
@@ -97,7 +100,10 @@ export const Week = ({ onNavigate, className, ...props }) => {
           const ingredients = codes.map((c) => allergyMap[c]).filter(Boolean);
           // 분류
           let category = "가능";
-          if (violatesReligion(name, religions)) {
+          if (violatesDiet(name, ingredients, dietType)) {
+            category = "제외";
+            excludeCount[name] = (excludeCount[name] || 0) + 1;
+          } else if (violatesReligion(name, religions)) {
             category = "제외";
             excludeCount[name] = (excludeCount[name] || 0) + 1;
           } else if (ingredients.length && allergies.length) {
@@ -123,7 +129,7 @@ export const Week = ({ onNavigate, className, ...props }) => {
     };
     if (allergies.length > 0) fetchMeals();
     // eslint-disable-next-line
-  }, [allergies, selectedDate]);
+  }, [allergies, selectedDate, dietType, religions]);
 
   // PieChart용 데이터(라벨 번역)
   const pieData = [

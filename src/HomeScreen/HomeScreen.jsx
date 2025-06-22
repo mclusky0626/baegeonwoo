@@ -14,6 +14,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
 import { violatesReligion } from "../utils/religionRules";
+import { violatesDiet } from "../utils/dietRules";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const { t, i18n } = useTranslation();
@@ -36,6 +37,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const [loginTab, setLoginTab] = useState("login");
   const [allergies, setAllergies] = useState([]);
   const [religions, setReligions] = useState([]);
+  const [dietType, setDietType] = useState("");
 
   // 알레르기 코드 → 이름 매핑
   const allergyMap = {
@@ -93,6 +95,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           setSchoolCode(d.schoolCode || "");
           setAllergies(d.allergies || []);
           setReligions(d.religion || []);
+          setDietType(d.dietType || "");
         }
       } else {
         setSchoolName(t("select_school"));
@@ -100,6 +103,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         setSchoolCode("");
         setAllergies([]);
         setReligions([]);
+        setDietType("");
       }
     }
     fetchUserSettings();
@@ -300,12 +304,17 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               <div>{t("no_meal_data")}</div>
             ) : (
               meals.map((menu, idx) => {
-                const hasAllergy = menu.ingredients.some(i => allergies.includes(i));
-                const violates = violatesReligion(menu.name, religions);
+                const hasAllergy = menu.ingredients.some((i) => allergies.includes(i));
+                const religionBan = violatesReligion(menu.name, religions);
+                const dietBan = violatesDiet(menu.name, menu.ingredients, dietType);
                 let className = "simple-meal-item";
                 let icon = "✅";
                 let label = t("can_eat");
-                if (violates) {
+                if (dietBan) {
+                  className += " exclude";
+                  icon = "❌";
+                  label = t("diet_violation");
+                } else if (religionBan) {
                   className += " exclude";
                   icon = "❌";
                   label = t("religion_violation");
