@@ -22,3 +22,11 @@ export const retrieveToken = async (registration) => {
 export const subscribeToMessages = (callback) => {
   onMessage(messaging, callback);
 };
+
+export const showLocalNotification = (title, options = {}) => {
+  if (window.swRegistration) {
+    window.swRegistration.showNotification(title, options);
+  } else if (Notification.permission === 'granted') {
+    new Notification(title, options);
+  }
+};

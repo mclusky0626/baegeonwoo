@@ -15,6 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
 import { violatesReligion } from "../utils/religionRules";
 import { violatesDiet } from "../utils/dietRules";
+import { showLocalNotification } from "../messaging";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const { t, i18n } = useTranslation();
@@ -154,6 +155,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
+      showLocalNotification('로그인 되었습니다!', { icon: '/temp/icon-192.png' });
     } catch (err) {
       setLoginError(t("login_failed"));
     }
@@ -164,6 +166,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
+      showLocalNotification('로그인 되었습니다!', { icon: '/temp/icon-192.png' });
     } catch (err) {
       setLoginError(t("register_failed") + err.message);
     }
@@ -178,6 +181,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     try {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
+      showLocalNotification('로그인 되었습니다!', { icon: '/temp/icon-192.png' });
     } catch (err) {
       setLoginError(t("google_login") + ": " + err.message);
     }
