@@ -13,3 +13,17 @@ root.render(
     <App />
   </StrictMode>
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      window.swRegistration = registration;
+      const { requestNotificationPermission, retrieveToken } = await import('./messaging');
+      await requestNotificationPermission();
+      await retrieveToken(registration);
+    } catch (err) {
+      console.log('Service worker registration failed', err);
+    }
+  });
+}

@@ -35,6 +35,14 @@
    ```bash
    npm run build
    ```
+4. PWA 설치
+   - 배포 후 브라우저에서 '홈 화면에 추가'를 선택하면 안드로이드 앱처럼 동작합니다.
+
+## Firebase 알림 설정
+서비스 워커(`public/firebase-messaging-sw.js`)가 FCM 푸시 알림을 처리합니다.
+알림 권한을 승인하면 매일 오전 8시에 오늘의 급식 정보를 전달하도록 서버에서 메시지를 전송할 수 있습니다.
+
+예시 Cloud Function(`functions/sendDailyMealNotification.js`)을 사용하면 매일 아침 8시에 `meal` 토픽으로 메시지를 보낼 수 있습니다.
 
 ## 다음으로 배워야 할 것
 - React Hooks (`useState`, `useEffect` 등) 활용
