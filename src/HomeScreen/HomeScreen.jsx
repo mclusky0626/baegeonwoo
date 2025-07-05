@@ -39,6 +39,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const [allergies, setAllergies] = useState([]);
   const [religions, setReligions] = useState([]);
   const [dietType, setDietType] = useState("");
+  const [detailMenu, setDetailMenu] = useState(null);
 
   // 알레르기 코드 → 이름 매핑
   const allergyMap = {
@@ -246,6 +247,19 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           </div>
         </div>
       )}
+      {detailMenu && (
+        <div className="meal-detail-bg" onClick={() => setDetailMenu(null)}>
+          <div className="meal-detail" onClick={e => e.stopPropagation()}>
+            <div className="meal-detail-title">{detailMenu.name}</div>
+            <div className="meal-detail-ingredients">
+              {detailMenu.ingredients.map((x) => t(x)).join(', ')}
+            </div>
+            <button className="meal-detail-close" onClick={() => setDetailMenu(null)}>
+              {t('close')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 상단 header */}
       <div className="header">
@@ -324,10 +338,14 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 } else if (hasAllergy) {
                   className += " warning";
                   icon = "⚠️";
-                  label = `${t("allergy_warning")}: ${menu.ingredients.map((x) => t(x)).join(", ")}`;
+                  label = t("allergy_warning");
                 }
                 return (
-                  <div key={idx} className={className}>
+                  <div
+                    key={idx}
+                    className={className}
+                    onClick={() => hasAllergy && setDetailMenu(menu)}
+                  >
                     <span className="meal-name">{icon} {menu.name}</span>
                     <div style={{ fontSize: 13, marginTop: 4 }}>
                       {label}
