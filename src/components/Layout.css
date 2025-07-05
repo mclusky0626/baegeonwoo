@@ -11,7 +11,7 @@
 .layout > *:first-child {
   flex: 1;
   width: 100%;
-  padding-bottom: 90px;  /* 탭바 높이+여유 */
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
 }
 
 .layout > .tab-bar {
@@ -25,7 +25,7 @@
   background: #f8f9fa;
   border-top: 1px solid #e9ecef;
   z-index: 100;
-  padding: 8px 0 10px 0;
+  padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px)) 0;
 }
 
 .tab-bar button {

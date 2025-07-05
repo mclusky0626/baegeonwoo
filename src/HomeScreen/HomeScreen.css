@@ -739,11 +739,16 @@
 .meal-name {
   flex: 1;
   letter-spacing: -0.01em;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .simple-meal-item.warning {
   background-color: #fff3cd;
   border: 1px solid #ffeeba;
+  cursor: pointer;
 }
 .simple-meal-item.exclude {
   background-color: #f8d7da;
@@ -870,4 +875,48 @@
 .google-login-btn:hover {
   background: #f7f7f7;
   border-color: #b7b7b7;
+}
+
+/* Meal detail modal */
+.meal-detail-bg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meal-detail {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px #0002;
+  padding: 24px 20px;
+  width: 280px;
+  text-align: center;
+}
+
+.meal-detail-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.meal-detail-ingredients {
+  font-size: 15px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.meal-detail-close {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 12px;
 }

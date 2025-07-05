@@ -22,6 +22,7 @@
   "no_meal_data": "No meal data.",
   "meal": "Meal",
   "allergy_warning": "Allergy Warning",
+  "allergy_details": "Allergy Details",
   "religion_violation": "Not allowed by religion",
   "diet_violation": "Not allowed by diet",
   "can_eat": "Can eat",
