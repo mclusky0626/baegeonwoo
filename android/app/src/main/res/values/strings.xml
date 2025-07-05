@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">dagub</string>
+    <string name="title_activity_main">dagub</string>
+    <string name="package_name">com.mclusky.dagub</string>
+    <string name="custom_url_scheme">com.mclusky.dagub</string>
+</resources>
