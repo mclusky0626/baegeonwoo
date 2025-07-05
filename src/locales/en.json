@@ -13,6 +13,7 @@
   "login": "Login",
   "register": "Register",
   "logout": "Logout",
+  "login_success": "Logged into the app!",
   "login_failed": "Login failed! Please check your email/password.",
   "register_failed": "Register failed: ",
   "google_login": "Login with Google",
