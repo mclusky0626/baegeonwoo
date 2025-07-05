@@ -39,6 +39,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const [allergies, setAllergies] = useState([]);
   const [religions, setReligions] = useState([]);
   const [dietType, setDietType] = useState("");
+  const [detailMenu, setDetailMenu] = useState(null);
 
   // 알레르기 코드 → 이름 매핑
   const allergyMap = {
@@ -189,21 +190,6 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
 
   return (
     <div className={"home-screen " + className}>
-      {/* 로그인 버튼/유저 표시 */}
-      <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
-        {user ? (
-          <span style={{ fontSize: 13 }}>
-            {user.email}
-            <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
-              {t("logout")}
-            </button>
-          </span>
-        ) : (
-          <button onClick={() => setShowLogin(true)} style={{ fontSize: 13 }}>
-            {t("login")}/{t("register")}
-          </button>
-        )}
-      </div>
       {showLogin && (
         <div className="login-modal-bg">
           <div className="login-modal">
@@ -261,6 +247,19 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           </div>
         </div>
       )}
+      {detailMenu && (
+        <div className="meal-detail-bg" onClick={() => setDetailMenu(null)}>
+          <div className="meal-detail" onClick={e => e.stopPropagation()}>
+            <div className="meal-detail-title">{detailMenu.name}</div>
+            <div className="meal-detail-ingredients">
+              {detailMenu.ingredients.map((x) => t(x)).join(', ')}
+            </div>
+            <button className="meal-detail-close" onClick={() => setDetailMenu(null)}>
+              {t('close')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 상단 header */}
       <div className="header">
@@ -284,6 +283,20 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               showPopperArrow={false}
               locale={i18n.language}
             />
+          </div>
+          <div className="user-info">
+            {user ? (
+              <>
+                <span className="user-email">{user.email}</span>
+                <button onClick={handleLogout} className="header-logout">
+                  {t("logout")}
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setShowLogin(true)} className="header-login">
+                {t("login")}/{t("register")}
+              </button>
+            )}
           </div>
         </div>
         <div className="school-info">
@@ -325,10 +338,14 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 } else if (hasAllergy) {
                   className += " warning";
                   icon = "⚠️";
-                  label = `${t("allergy_warning")}: ${menu.ingredients.map((x) => t(x)).join(", ")}`;
+                  label = t("allergy_warning");
                 }
                 return (
-                  <div key={idx} className={className}>
+                  <div
+                    key={idx}
+                    className={className}
+                    onClick={() => hasAllergy && setDetailMenu(menu)}
+                  >
                     <span className="meal-name">{icon} {menu.name}</span>
                     <div style={{ fontSize: 13, marginTop: 4 }}>
                       {label}
