@@ -229,7 +229,7 @@ export const Frame = ({ className = "" }) => {
               </>
             )}
           </div>
-          <button className="detail-btn">{t("see_details")}</button>
+          <button className="detail-btn" onClick={() => navigate("/Week")}>{t("see_details")}</button>
         </section>
 
         {/* 언어 설정 */}

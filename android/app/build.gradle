@@ -40,6 +40,12 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+        // Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:33.16.0')
+
+    // Firebase 제품 (예: 알림, 애널리틱스)
+    implementation 'com.google.firebase:firebase-messaging'
+    // implementation 'com.google.firebase:firebase-analytics'  // 필요하면 추가
 }
 
 apply from: 'capacitor.build.gradle'
