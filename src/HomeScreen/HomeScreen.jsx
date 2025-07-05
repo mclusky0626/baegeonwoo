@@ -189,21 +189,6 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
 
   return (
     <div className={"home-screen " + className}>
-      {/* 로그인 버튼/유저 표시 */}
-      <div style={{ position: "absolute", right: 20, top: 10, zIndex: 10 }}>
-        {user ? (
-          <span style={{ fontSize: 13 }}>
-            {user.email}
-            <button onClick={handleLogout} style={{ marginLeft: 10, fontSize: 13 }}>
-              {t("logout")}
-            </button>
-          </span>
-        ) : (
-          <button onClick={() => setShowLogin(true)} style={{ fontSize: 13 }}>
-            {t("login")}/{t("register")}
-          </button>
-        )}
-      </div>
       {showLogin && (
         <div className="login-modal-bg">
           <div className="login-modal">
@@ -284,6 +269,20 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
               showPopperArrow={false}
               locale={i18n.language}
             />
+          </div>
+          <div className="user-info">
+            {user ? (
+              <>
+                <span className="user-email">{user.email}</span>
+                <button onClick={handleLogout} className="header-logout">
+                  {t("logout")}
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setShowLogin(true)} className="header-login">
+                {t("login")}/{t("register")}
+              </button>
+            )}
           </div>
         </div>
         <div className="school-info">
