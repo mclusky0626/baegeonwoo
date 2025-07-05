@@ -12,6 +12,7 @@
   "login": "登录",
   "register": "注册",
   "logout": "登出",
+  "login_success": "已登录应用！",
   "login_failed": "登录失败！请检查邮箱或密码。",
   "register_failed": "注册失败：",
   "google_login": "使用谷歌登录",
