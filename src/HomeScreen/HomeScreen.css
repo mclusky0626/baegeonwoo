@@ -92,6 +92,27 @@
   flex-shrink: 0;
   position: relative;
 }
+.home-screen .user-info {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 13px;
+  max-width: 45%;
+}
+.home-screen .user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-screen .header-login,
+.home-screen .header-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
 .home-screen .calendar {
   flex-shrink: 0;
   width: 20px;
