@@ -1,7 +1,7 @@
 import "./HomeScreen.css";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { auth, db, googleProvider } from "../firebase";
+import { auth, db, googleProvider, functions } from "../firebase";
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -15,10 +15,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
 import { violatesReligion } from "../utils/religionRules";
 import { violatesDiet } from "../utils/dietRules";
-import { showLocalNotification } from "../messaging";
+import { showLocalNotification, getCurrentToken } from "../messaging";
+import { httpsCallable } from "firebase/functions";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
   const { t, i18n } = useTranslation();
+  const sendLoginNotification = httpsCallable(functions, 'sendLoginNotification');
 
   // 급식/학교 관련
   const [meals, setMeals] = useState([]);
@@ -157,6 +159,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      const token = getCurrentToken();
+      if (token) {
+        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+      }
     } catch (err) {
       setLoginError(t("login_failed"));
     }
@@ -168,6 +174,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      const token = getCurrentToken();
+      if (token) {
+        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+      }
     } catch (err) {
       setLoginError(t("register_failed") + err.message);
     }
@@ -183,6 +193,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      const token = getCurrentToken();
+      if (token) {
+        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+      }
     } catch (err) {
       setLoginError(t("google_login") + ": " + err.message);
     }
