@@ -33,8 +33,9 @@ export const getCurrentToken = () => currentToken;
 
 // 로컬 푸시 알림 표시
 export const showLocalNotification = (title, options = {}) => {
-  if (window.swRegistration) {
-    window.swRegistration.showNotification(title, options);
+  const reg = window.swRegistration;
+  if (reg && typeof reg.showNotification === "function") {
+    reg.showNotification(title, options);
   } else if (Notification.permission === "granted") {
     new Notification(title, options);
   }
