@@ -44,6 +44,8 @@
 
 예시 Cloud Function(`functions/sendDailyMealNotification.js`)을 사용하면 매일 아침 8시에 `meal` 토픽으로 메시지를 보낼 수 있습니다.
 
+또한 로그인 성공 시 알림을 전송하려면 `functions/sendLoginNotification.js`를 Cloud Functions에 배포하고, 앱에서 로그인 완료 후 해당 함수를 호출하면 됩니다.
+
 ## 다음으로 배워야 할 것
 - React Hooks (`useState`, `useEffect` 등) 활용
 - Firebase 인증 흐름과 Firestore 쿼리
