@@ -159,6 +159,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
         try {
@@ -182,6 +183,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
         try {
@@ -209,6 +211,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
         try {
