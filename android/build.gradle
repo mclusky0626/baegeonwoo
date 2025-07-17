@@ -8,7 +8,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
-        classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.gms:google-services:4.4.3'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -17,10 +16,6 @@ buildscript {
 }
 
 apply from: "variables.gradle"
-apply plugin: 'com.android.application'
-
-// Firebase 알림 등 사용을 위한 플러그인 적용
-apply plugin: 'com.google.gms.google-services'
 
 
 allprojects {

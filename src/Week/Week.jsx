@@ -127,7 +127,9 @@ export const Week = ({ onNavigate, className, ...props }) => {
         .map(([name, cnt]) => ({ name, count: cnt }));
       setTopExclude(top);
     };
-    if (allergies.length > 0) fetchMeals();
+    // fetch meal data even when the user has no allergies selected
+    // to ensure the weekly chart is always populated
+    fetchMeals();
     // eslint-disable-next-line
   }, [allergies, selectedDate, dietType, religions]);
 
