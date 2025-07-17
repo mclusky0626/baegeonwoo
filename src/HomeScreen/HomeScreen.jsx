@@ -15,7 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout";
 import { violatesReligion } from "../utils/religionRules";
 import { violatesDiet } from "../utils/dietRules";
-import { showLocalNotification, getCurrentToken } from "../messaging";
+import { showLocalNotification, getCurrentToken, requestNotificationPermission, retrieveToken } from "../messaging";
 import { httpsCallable } from "firebase/functions";
 
 export const HomeScreen = ({ onNavigate, className, ...props }) => {
@@ -159,7 +159,16 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      const token = getCurrentToken();
+
+      let token = getCurrentToken();
+      if (!token && window.swRegistration) {
+        try {
+          await requestNotificationPermission();
+          token = await retrieveToken(window.swRegistration);
+        } catch (e) {
+          console.log('token retrieval failed', e);
+        }
+      }
       if (token) {
         try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
       }
@@ -174,7 +183,16 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      const token = getCurrentToken();
+
+      let token = getCurrentToken();
+      if (!token && window.swRegistration) {
+        try {
+          await requestNotificationPermission();
+          token = await retrieveToken(window.swRegistration);
+        } catch (e) {
+          console.log('token retrieval failed', e);
+        }
+      }
       if (token) {
         try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
       }
@@ -193,7 +211,16 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      const token = getCurrentToken();
+
+      let token = getCurrentToken();
+      if (!token && window.swRegistration) {
+        try {
+          await requestNotificationPermission();
+          token = await retrieveToken(window.swRegistration);
+        } catch (e) {
+          console.log('token retrieval failed', e);
+        }
+      }
       if (token) {
         try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
       }
