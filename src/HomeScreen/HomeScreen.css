@@ -9,10 +9,9 @@
   gap: 0px;
   align-items: flex-start;
   justify-content: flex-start;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   position: relative;
-
+  
 }
 .home-screen .status-bar {
   padding: 0px 16px 0px 16px;

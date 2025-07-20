@@ -1,8 +1,7 @@
 .settings-screen {
   padding: 20px;
   background: #fff;
-  height: 100vh;
-  overflow-y: auto;
+  min-height: 100vh;
   font-family: 'Inter', sans-serif;
 }
 .header .div {
@@ -24,7 +23,6 @@
   display: flex;
   gap: 12px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
 .religion-option, .diet-option {
   padding: 8px 16px;

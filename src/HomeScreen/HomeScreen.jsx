@@ -398,6 +398,10 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           </div>
         </div>
       </div>
+      <div className="feedback-button">
+        <img className="message-square" src="message-square0.svg" />
+        <div className="div8">{t("feedback")}</div>
+      </div>
     </div>
   );
 };
