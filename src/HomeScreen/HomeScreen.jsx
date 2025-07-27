@@ -9,12 +9,12 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Added updateDoc, arrayUnion
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Layout } from "../components/Layout";
-import { violatesReligion } from "../utils/religionRules";
-import { violatesDiet } from "../utils/dietRules";
+import { Layout } from "../components/Layout"; // Assuming this is used elsewhere
+import { violatesReligion } from "../utils/religionRules"; // Assuming these are correctly imported
+import { violatesDiet } from "../utils/dietRules"; // Assuming these are correctly imported
 import { showLocalNotification, getCurrentToken, requestNotificationPermission, retrieveToken } from "../messaging";
 import { httpsCallable } from "firebase/functions";
 
@@ -114,6 +114,37 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     // eslint-disable-next-line
   }, [user, i18n.language]);
 
+  // --- FCM 토큰 관리 및 Firestore 저장 로직 추가 ---
+  useEffect(() => {
+    async function handleNotificationToken() {
+      if (user) {
+        try {
+          // 사용자에게 알림 권한을 요청합니다.
+          // 사용자가 이미 권한을 부여했거나 거부했다면 다시 묻지 않습니다.
+          await requestNotificationPermission();
+          // 서비스 워커가 등록되어 있다면 토큰을 가져옵니다.
+          const token = await retrieveToken(window.swRegistration);
+          if (token) {
+            console.log('FCM Token:', token);
+            // 사용자 문서에 토큰을 저장합니다.
+            // 여러 기기에서 로그인할 수 있으므로 배열 형태로 저장하는 것이 좋습니다.
+            // setDoc 대신 updateDoc과 arrayUnion을 사용하여 기존 배열에 추가합니다.
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, {
+              fcmTokens: arrayUnion(token)
+            }, { merge: true }); // merge: true를 사용하여 기존 필드를 덮어쓰지 않고 병합
+            console.log('FCM Token saved/updated in Firestore for user:', user.uid);
+          }
+        } catch (e) {
+          console.error("알림 토큰 설정 중 오류 발생:", e);
+          // 사용자가 알림 권한을 거부했거나 다른 오류가 발생했을 때 처리
+        }
+      }
+    }
+    handleNotificationToken();
+  }, [user]); // user 객체가 변경될 때마다 이 Effect를 실행 (로그인/로그아웃 시)
+  // --- FCM 토큰 관리 로직 끝 ---
+
   // 급식 데이터 불러오기 (학교/날짜 바뀔 때마다)
   useEffect(() => {
     async function fetchMeals() {
@@ -142,7 +173,8 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         } else {
           setMeals([]);
         }
-      } catch {
+      } catch (error) { // Changed generic catch to catch specific error for logging
+        console.error("급식 데이터를 불러오는 중 오류 발생:", error);
         setMeals([]);
       }
       setLoading(false);
@@ -158,24 +190,39 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
+      // 로컬 알림을 먼저 띄워 사용자에게 즉각적인 피드백을 제공합니다.
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      console.log('로컬 로그인 성공 알림 표시.');
 
-      let token = getCurrentToken();
+      // FCM 푸시 알림을 보내기 위해 토큰을 확인하고 시도합니다.
+      let token = getCurrentToken(); // 현재 저장된 토큰이 있는지 확인
       if (!token && window.swRegistration) {
+        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
         try {
-          await requestNotificationPermission();
-          token = await retrieveToken(window.swRegistration);
-        } catch (e) {
-          console.log('token retrieval failed', e);
+          await requestNotificationPermission(); // 알림 권한 요청 (브라우저 팝업)
+          token = await retrieveToken(window.swRegistration); // 토큰 발급/갱신
+        } catch (permissionError) {
+          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
         }
       }
+
       if (token) {
-        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+        console.log('FCM 토큰이 있습니다. 로그인 알림을 보냅니다.');
+        try {
+          await sendLoginNotification({ token });
+          console.log('Firebase Cloud Function을 통해 로그인 알림 전송 성공.');
+        } catch (sendError) {
+          console.error('Firebase Cloud Function을 통한 로그인 알림 전송 실패:', sendError);
+        }
+      } else {
+        console.log('FCM 토큰이 없어 로그인 푸시 알림을 보낼 수 없습니다.');
       }
     } catch (err) {
       setLoginError(t("login_failed"));
+      console.error('로그인 중 오류 발생:', err);
     }
   };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoginError("");
@@ -183,25 +230,42 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      console.log('로컬 회원가입 성공 알림 표시.');
 
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
+        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
         try {
           await requestNotificationPermission();
           token = await retrieveToken(window.swRegistration);
-        } catch (e) {
-          console.log('token retrieval failed', e);
+        } catch (permissionError) {
+          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
         }
       }
+
       if (token) {
-        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+        console.log('FCM 토큰이 있습니다. 회원가입 알림을 보냅니다.');
+        try {
+          await sendLoginNotification({ token }); // sendLoginNotification 대신 sendRegisterNotification 같은 함수를 따로 만들 수도 있습니다.
+          console.log('Firebase Cloud Function을 통해 회원가입 알림 전송 성공.');
+        } catch (sendError) {
+          console.error('Firebase Cloud Function을 통한 회원가입 알림 전송 실패:', sendError);
+        }
+      } else {
+        console.log('FCM 토큰이 없어 회원가입 푸시 알림을 보낼 수 없습니다.');
       }
     } catch (err) {
       setLoginError(t("register_failed") + err.message);
+      console.error('회원가입 중 오류 발생:', err);
     }
   };
+
   const handleLogout = async () => {
     await signOut(auth);
+    console.log('사용자 로그아웃 완료.');
+    // 로그아웃 시 Fcm 토큰을 Firestore에서 제거할 수도 있습니다.
+    // 이는 특정 기기에서만 알림을 받게 하거나, 더 이상 사용하지 않는 토큰을 정리하는 데 유용합니다.
+    // 예: const userRef = doc(db, "users", user.uid); await updateDoc(userRef, { fcmTokens: arrayRemove(token) });
   };
 
   // 구글 로그인 핸들러
@@ -211,21 +275,33 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       await signInWithPopup(auth, googleProvider);
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
+      console.log('로컬 구글 로그인 성공 알림 표시.');
 
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
+        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
         try {
           await requestNotificationPermission();
           token = await retrieveToken(window.swRegistration);
-        } catch (e) {
-          console.log('token retrieval failed', e);
+        } catch (permissionError) {
+          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
         }
       }
+
       if (token) {
-        try { await sendLoginNotification({ token }); } catch (e) { console.log('sendLoginNotification failed', e); }
+        console.log('FCM 토큰이 있습니다. 구글 로그인 알림을 보냅니다.');
+        try {
+          await sendLoginNotification({ token });
+          console.log('Firebase Cloud Function을 통해 구글 로그인 알림 전송 성공.');
+        } catch (sendError) {
+          console.error('Firebase Cloud Function을 통한 구글 로그인 알림 전송 실패:', sendError);
+        }
+      } else {
+        console.log('FCM 토큰이 없어 구글 로그인 푸시 알림을 보낼 수 없습니다.');
       }
     } catch (err) {
       setLoginError(t("google_login") + ": " + err.message);
+      console.error('구글 로그인 중 오류 발생:', err);
     }
   };
 
@@ -306,7 +382,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       <div className="header">
         <div className="date-row">
           <div className="date-info">
-            <img className="calendar" src="calendar0.svg" />
+            <img className="calendar" src="calendar0.svg" alt="calendar icon" /> {/* Added alt text */}
             {/* 달력 */}
             <DatePicker
               selected={selectedDate}
@@ -341,7 +417,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           </div>
         </div>
         <div className="school-info">
-          <img className="school" src="school0.svg" />
+          <img className="school" src="school0.svg" alt="school icon" /> {/* Added alt text */}
           <div className="div">{schoolName}</div>
         </div>
       </div>
@@ -350,7 +426,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       <div className="content-container">
         <div className="content">
           <div className="meal-title">
-            <img className="utensils" src="utensils0.svg" />
+            <img className="utensils" src="utensils0.svg" alt="utensils icon" /> {/* Added alt text */}
             <div className="div2">
               {getDateDisplay(selectedDate)} {t("meal")}
             </div>
@@ -398,10 +474,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           </div>
         </div>
       </div>
-      <div className="feedback-button">
-        <img className="message-square" src="message-square0.svg" />
-        <div className="div8">{t("feedback")}</div>
-      </div>
+
     </div>
   );
 };
