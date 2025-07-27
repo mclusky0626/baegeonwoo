@@ -293,7 +293,11 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           <div className="meal-detail" onClick={e => e.stopPropagation()}>
             <div className="meal-detail-title">{detailMenu.name}</div>
             <div className="meal-detail-ingredients">
-              {detailMenu.ingredients.map((x) => t(x)).join(', ')}
+              {detailMenu.ingredients.map((x, i) => (
+                <span key={x} className={allergies.includes(x) ? 'highlight-allergy' : ''}>
+                  {t(x)}{i < detailMenu.ingredients.length - 1 ? ', ' : ''}
+                </span>
+              ))}
             </div>
             <button className="meal-detail-close" onClick={() => setDetailMenu(null)}>
               {t('close')}
@@ -385,7 +389,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                   <div
                     key={idx}
                     className={className}
-                    onClick={() => hasAllergy && setDetailMenu(menu)}
+                    onClick={() => setDetailMenu(menu)}
                   >
                     <span className="meal-name">{icon} {menu.name}</span>
                     <div style={{ fontSize: 13, marginTop: 4 }}>
