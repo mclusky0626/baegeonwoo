@@ -12,7 +12,7 @@
 .school-section, .religion-section, .diet-section, .allergy-section {
   margin-bottom: 28px;
 }
-.school-input-box, .allergy-input-box {
+.school-input-box {
   width: 80%;
   padding: 8px 12px;
   border: 1px solid #e9ecef;
@@ -25,11 +25,11 @@
   margin-top: 10px;
 }
 .religion-option, .diet-option {
-  padding: 8px 16px;
-  border-radius: 16px;
+  padding: 6px 12px;
+  border-radius: 12px;
   border: 1px solid #ddd;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   background: #f8f9fa;
   user-select: none;
   transition: all .2s;
@@ -39,52 +39,16 @@
   color: #fff;
   border-color: #007aff;
 }
-.allergy-input {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.plus-btn {
-  background: #007aff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.selected-allergies {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.allergy-badge {
-  background: #f5c6cb;
-  color: #721c24;
-  border-radius: 16px;
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-}
-.remove-btn {
-  background: none;
-  color: #721c24;
-  border: none;
-  margin-left: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
 .save-button {
   background: #007aff;
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 14px 36px;
-  font-size: 18px;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 16px;
   font-weight: 700;
   width: 100%;
-  margin-top: 18px;
+  margin-top: 14px;
   cursor: pointer;
   transition: background .2s;
 }
@@ -128,16 +92,16 @@
   justify-content: center;
   white-space: nowrap;    /* ✅ 줄바꿈 금지 */
   word-break: keep-all;   /* ✅ 한 단어로 표시 */
-  padding: 15px 20px;     /* 필요에 따라 조정 */
-  border-radius: 24px;
+  padding: 6px 12px;
+  border-radius: 12px;
   border: 2px solid #e5e5e5;
-  font-size: 15px;
-  margin-right: 5px;
-  margin-bottom: 14px;
+  font-size: 14px;
+  margin-right: 4px;
+  margin-bottom: 10px;
   background: #f8f9fa;
   cursor: pointer;
-  min-width: 60px;        /* 버튼 최소 너비 */
-  min-height: 40px;       /* 버튼 최소 높이 */
+  min-width: 50px;
+  min-height: 32px;
   transition: background 0.2s, border 0.2s;
 }
 
@@ -159,15 +123,15 @@
   justify-content: center;
   background: #f8f9fa;
   color: #222;
-  font-size: 15px;
+  font-size: 14px;
   font-family: "Pretendard", "Inter", sans-serif;
-  padding: 10px 10px;
-  border-radius: 32px;
+  padding: 6px 10px;
+  border-radius: 20px;
   border: 2px solid #e0e3e8;
   white-space: nowrap;        /* ✅ 줄바꿈 금지 */
   word-break: keep-all;       /* ✅ 단어 분리 X */
-  min-width: 70px;
-  min-height: 50px;
+  min-width: 55px;
+  min-height: 36px;
   transition: all 0.18s;
   cursor: pointer;
 }
@@ -178,23 +142,20 @@
   border: 2px solid #5279ff;
   font-weight: 600;
 }
-.suggestion-list {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  list-style: none;
-  padding-left: 0;
-  margin-top: 4px;
-  max-height: 120px;
+
+.allergy-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 150px;
   overflow-y: auto;
+  margin-top: 8px;
 }
 
-.suggestion-item {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.suggestion-item:hover {
-  background-color: #f1f1f1;
+.allergy-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
 }
 
