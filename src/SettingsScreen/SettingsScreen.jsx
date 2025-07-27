@@ -13,6 +13,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   const [schoolList, setSchoolList] = useState([]);
   const [eduCode, setEduCode] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
+  const [schoolSelected, setSchoolSelected] = useState(false);
 
   // 기타 설정
   const [religion, setReligion] = useState([]);
@@ -36,7 +37,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   // 학교명 입력시 네이스 학교정보 검색 API 호출 (2글자 이상일 때만)
   useEffect(() => {
     const fetchSchools = async () => {
-      if (schoolName.length < 2) { setSchoolList([]); return; }
+      if (schoolName.length < 2 || schoolSelected) { setSchoolList([]); return; }
       const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=7730a6275172463a8ab608807131a22c&Type=json&SCHUL_NM=${encodeURIComponent(schoolName)}`;
       try {
         const res = await fetch(url);
@@ -48,7 +49,7 @@ export const SettingsScreen = ({ onNavigate }) => {
       }
     };
     fetchSchools();
-  }, [schoolName]);
+  }, [schoolName, schoolSelected]);
 
   // 학교 선택 시
   const handleSelectSchool = (school) => {
@@ -56,6 +57,7 @@ export const SettingsScreen = ({ onNavigate }) => {
     setEduCode(school.ATPT_OFCDC_SC_CODE);
     setSchoolCode(school.SD_SCHUL_CODE);
     setSchoolList([]);
+    setSchoolSelected(true);
     if (inputRef.current) inputRef.current.blur();
   };
 
@@ -133,7 +135,7 @@ export const SettingsScreen = ({ onNavigate }) => {
             type="text"
             placeholder={t("school_input_placeholder")}
             value={schoolName}
-            onChange={e => setSchoolName(e.target.value)}
+            onChange={e => { setSchoolName(e.target.value); setSchoolSelected(false); }}
             autoComplete="off"
           />
           {/* 추천학교 목록 */}
