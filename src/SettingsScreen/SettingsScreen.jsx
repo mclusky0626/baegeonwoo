@@ -17,9 +17,7 @@ export const SettingsScreen = ({ onNavigate }) => {
   // 기타 설정
   const [religion, setReligion] = useState([]);
   const [dietType, setDietType] = useState("");
-  const [allergyInput, setAllergyInput] = useState("");
   const [allergies, setAllergies] = useState([]);
-  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [saveMsg, setSaveMsg] = useState("");
   const inputRef = useRef(null);
 
@@ -28,7 +26,7 @@ export const SettingsScreen = ({ onNavigate }) => {
     "이슬람", "힌두교", "불교", "기독교", "없음"
   ];
   const dietTypes = [
-    "일반식", "비건", "락토오보", "페스코", "기타"
+    "일반식", "비건", "락토오보", "페스코"
   ];
   const allergyList = [
     "난류", "우유", "메밀", "땅콩", "대두", "밀", "고등어", "게", "새우",
@@ -91,28 +89,11 @@ export const SettingsScreen = ({ onNavigate }) => {
   // 식생활유형 변경
   const handleDietChange = (d) => setDietType(d);
 
-  // 알러지 입력 (자동완성)
-  const handleAllergyInputChange = (e) => {
-    const value = e.target.value;
-    setAllergyInput(value);
-    if (value) {
-      const suggestions = allergyList.filter(
-        (item) => item.includes(value) && !allergies.includes(item)
-      );
-      setFilteredSuggestions(suggestions);
-    } else {
-      setFilteredSuggestions([]);
-    }
-  };
-
-  const handleSelectSuggestion = (item) => {
-    setAllergies([...allergies, item]);
-    setAllergyInput("");
-    setFilteredSuggestions([]);
-  };
-
-  const handleRemoveAllergy = (val) => {
-    setAllergies(allergies.filter((a) => a !== val));
+  // 알러지 체크박스 변경
+  const handleToggleAllergy = (val) => {
+    setAllergies((prev) =>
+      prev.includes(val) ? prev.filter((a) => a !== val) : [...prev, val]
+    );
   };
 
   // 저장
@@ -218,38 +199,16 @@ export const SettingsScreen = ({ onNavigate }) => {
         {/* 알러지 */}
         <div className="allergy-section">
           <div className="div2">{t("allergy_check")}</div>
-          <div className="allergy-input">
-            <input
-              className="allergy-input-box"
-              type="text"
-              placeholder={t("allergy_input_placeholder")}
-              value={allergyInput}
-              onChange={handleAllergyInputChange}
-            />
-          </div>
-
-          {filteredSuggestions.length > 0 && (
-            <ul className="suggestion-list">
-              {filteredSuggestions.map((item) => (
-                <li
-                  key={item}
-                  className="suggestion-item"
-                  onClick={() => handleSelectSuggestion(item)}
-                >
-                  {t(item)}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="selected-allergies">
-            {allergies.map((a) => (
-              <span className="allergy-badge" key={a}>
+          <div className="allergy-options">
+            {allergyList.map((a) => (
+              <label key={a} className="allergy-option">
+                <input
+                  type="checkbox"
+                  checked={allergies.includes(a)}
+                  onChange={() => handleToggleAllergy(a)}
+                />
                 {t(a)}
-                <button className="remove-btn" onClick={() => handleRemoveAllergy(a)}>
-                  x
-                </button>
-              </span>
+              </label>
             ))}
           </div>
         </div>
