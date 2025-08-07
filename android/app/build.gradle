@@ -1,18 +1,22 @@
+
 plugins {
     id 'com.android.application'
     id 'kotlin-android' // (Kotlin 사용하는 경우)
 }
+// Move the plugins block to the top
+
 
 android {
     namespace "com.mclusky.dagub"
 
     // ✅ 버전 직접 명시
     compileSdkVersion 34
-
+    compileSdkVersion 35
     defaultConfig {
         applicationId "com.mclusky.dagub"
         minSdkVersion 23
         targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -63,6 +67,12 @@ apply from: 'capacitor.build.gradle'
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.exists()) {
+        // If you are using the plugins {} block, it's generally recommended
+        // to declare plugins there. However, conditional application like this
+        // is a bit different. If you still want to apply it conditionally,
+        // this legacy way might be necessary.
+        // If 'com.google.gms.google-services' is always needed,
+        // add it to the plugins {} block at the top and remove this try-catch.
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {

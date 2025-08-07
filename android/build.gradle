@@ -1,17 +1,24 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-buildscript {
-    ext.kotlin_version = '1.9.22' // 원하는 코틀린 버전으로 맞춰주세요!
-    repositories {
-        google()
-        mavenCentral()
+
+
+    buildscript {
+        ext.kotlin_version = '1.9.20' // Or the version you intend to use
+        repositories {
+            google()
+            mavenCentral()
+        }
+        dependencies {
+            classpath 'com.android.tools.build:gradle:8.7.2'
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Add this line
+            classpath 'com.google.gms:google-services:4.4.3'
+
+            // NOTE: Do not place your application dependencies here; they belong
+            // in the individual module build.gradle files
+        }
+
     }
-    dependencies {
-        classpath "com.android.tools.build:gradle:8.3.0" // 예시, 버전 맞추기!
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // (필요한 classpath가 있으면 추가)
-    }
-}
+
 
 
 apply from: "variables.gradle"
