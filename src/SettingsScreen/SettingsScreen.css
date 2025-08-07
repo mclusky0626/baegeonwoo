@@ -12,6 +12,9 @@
 .school-section, .religion-section, .diet-section, .allergy-section {
   margin-bottom: 28px;
 }
+.allergy-section{
+  border: 2px blue solid;
+}
 .school-input-box {
   width: 80%;
   padding: 8px 12px;
@@ -153,6 +156,7 @@
 }
 
 .allergy-option {
+  padding-left: 10px;
   display: flex;
   align-items: center;
   gap: 6px;
