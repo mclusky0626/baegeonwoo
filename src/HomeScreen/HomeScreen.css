@@ -1,4 +1,4 @@
-.home-screen,
+.home-screen, /* modified by AI agent */
 .home-screen * {
   box-sizing: border-box;
 }
@@ -74,21 +74,12 @@
   flex-shrink: 0;
   position: relative;
 }
-.home-screen .date-row {
+.home-screen .header-top {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.home-screen .date-info {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-start;
   flex-shrink: 0;
   position: relative;
 }
@@ -108,26 +99,18 @@
 }
 .home-screen .header-login,
 .home-screen .header-logout {
-  background: none;
+  background: #007aff;
   border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
 }
-.home-screen .calendar {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  position: relative;
-  overflow: visible;
-}
-.home-screen ._2025-5-28 {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 18px;
-  line-height: 21.6px;
-  font-weight: 600;
-  position: relative;
+
+.home-screen .header-login:hover,
+.home-screen .header-logout:hover {
+  background: #005bb5;
 }
 .home-screen .settings {
   flex-shrink: 0;
@@ -154,7 +137,7 @@
   overflow: visible;
   vertical-align: middle;
 }
-.home-screen .div {
+.home-screen .school-name {
   color: #6c757d;
   text-align: left;
   font-family: "Inter-Medium", sans-serif;
@@ -209,6 +192,27 @@
   line-height: 24px;
   font-weight: 700;
   position: relative;
+}
+
+.home-screen .meal-date-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.home-screen .date-select-btn {
+  background: #fff;
+  border: 1px solid #007aff;
+  color: #007aff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.home-screen .date-select-btn:hover {
+  background: #e6f0ff;
 }
 .home-screen .meal-items {
   display: flex;
