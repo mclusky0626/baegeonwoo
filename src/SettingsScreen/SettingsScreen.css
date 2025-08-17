@@ -44,12 +44,12 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 10px 28px;
+  padding: 10px 0px;
   font-size: 16px;
   font-weight: 700;
   width: 100%;
   margin-top: 14px;
-  cursor: pointer;
+  cursor: pointer; 
   transition: background .2s;
 }
 .save-button:hover {
@@ -93,7 +93,7 @@
   white-space: nowrap;    /* ✅ 줄바꿈 금지 */
   word-break: keep-all;   /* ✅ 한 단어로 표시 */
   padding: 6px 12px;
-  border-radius: 12px;
+  border-radius: 20px;
   border: 2px solid #e5e5e5;
   font-size: 14px;
   margin-right: 4px;
