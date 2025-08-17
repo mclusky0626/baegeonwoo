@@ -1,4 +1,4 @@
-import "./HomeScreen.css";
+import "./HomeScreen.css"; // modified by AI agent
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { auth, db, googleProvider, functions } from "../firebase";
@@ -25,7 +25,6 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
   // 급식/학교 관련
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [todayStr, setTodayStr] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [schoolName, setSchoolName] = useState(t("select_school"));
   const [eduCode, setEduCode] = useState("");
@@ -72,11 +71,6 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
       : `${yyyy}년 ${mm}월 ${dd}일 (${day})`;
   }
 
-  // 날짜 선택하면 UI에 반영
-  useEffect(() => {
-    setTodayStr(getDateDisplay(selectedDate));
-    // eslint-disable-next-line
-  }, [selectedDate, i18n.language]);
 
   // 로그인 감시
   useEffect(() => {
@@ -384,27 +378,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
 
       {/* 상단 header */}
       <div className="header">
-        <div className="date-row">
-          <div className="date-info">
-            <img className="calendar" src="calendar0.svg" alt="calendar icon" /> {/* Added alt text */}
-            {/* 달력 */}
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => { setSelectedDate(date); setTodayStr(getDateDisplay(date)); }}
-              dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
-              customInput={
-                <span className="_2025-5-28" style={{ cursor: "pointer", fontWeight: 600 }}>
-                  {todayStr}
-                </span>
-              }
-              calendarClassName="meal-datepicker"
-              popperPlacement="bottom"
-              minDate={new Date(2020, 1, 1)}
-              maxDate={new Date(2099, 12, 31)}
-              showPopperArrow={false}
-              locale={i18n.language}
-            />
-          </div>
+        <div className="header-top">
           <div className="user-info">
             {user ? (
               <>
@@ -422,7 +396,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         </div>
         <div className="school-info">
           <img className="school" src="school0.svg" alt="school icon" /> {/* Added alt text */}
-          <div className="div">{schoolName}</div>
+          <div className="school-name">{schoolName}</div>
         </div>
       </div>
 
@@ -431,8 +405,23 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
         <div className="content">
           <div className="meal-title">
             <img className="utensils" src="utensils0.svg" alt="utensils icon" /> {/* Added alt text */}
-            <div className="div2">
-              {getDateDisplay(selectedDate)} {t("meal")}
+            <div className="div2 meal-date-row">
+              <span className="meal-date">{getDateDisplay(selectedDate)}</span>
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
+                customInput={
+                  <button className="date-select-btn">{t("change")}</button>
+                }
+                calendarClassName="meal-datepicker"
+                popperPlacement="bottom"
+                minDate={new Date(2020, 1, 1)}
+                maxDate={new Date(2099, 12, 31)}
+                showPopperArrow={false}
+                locale={i18n.language}
+              />
+              <span>{t("meal")}</span>
             </div>
           </div>
           <div className="meal-items">
