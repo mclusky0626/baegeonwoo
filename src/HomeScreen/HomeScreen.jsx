@@ -382,10 +382,11 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
           <div className="user-info">
             {user ? (
               <>
-                <span className="user-email">{user.email}</span>
+                {/* [수정] 버튼이 이메일 주소보다 앞에 오도록 순서 변경 */}
                 <button onClick={handleLogout} className="header-logout">
                   {t("logout")}
                 </button>
+                <span className="user-email">{user.email}</span>
               </>
             ) : (
               <button onClick={() => setShowLogin(true)} className="header-login">
@@ -421,7 +422,7 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
                 showPopperArrow={false}
                 locale={i18n.language}
               />
-              <span>{t("meal")}</span>
+
             </div>
           </div>
           <div className="meal-items">

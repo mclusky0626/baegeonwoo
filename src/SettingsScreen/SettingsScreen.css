@@ -107,7 +107,7 @@
 
 .religion-option.selected {
   background: #5279ff;
-  color: #fff;
+  color: #fff; 
   border: 2px solid #5279ff;
 }
 .diet-group {
