@@ -55,6 +55,25 @@
   margin: 0;
 }
 
+/* agent: highlight and expand name input */
+.name-row .name-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #4d8cfb;
+  border-radius: 8px;
+  background: #eaf3ff;
+  font-size: 16px;
+}
+
+.name-row .save-btn {
+  display: inline-block;
+  width: auto;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  margin-left: 8px;
+  margin-top: 0;
+}
+
 .edit-btn,
 .settings-btn {
   background: none;
