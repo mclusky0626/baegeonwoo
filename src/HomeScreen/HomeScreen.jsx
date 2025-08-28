@@ -18,7 +18,7 @@ import { violatesDiet } from "../utils/dietRules"; // Assuming these are correct
 import { showLocalNotification, getCurrentToken, requestNotificationPermission, retrieveToken } from "../messaging";
 import { httpsCallable } from "firebase/functions";
 
-export const HomeScreen = ({ onNavigate, className, ...props }) => {
+export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props }) => {
   const { t, i18n } = useTranslation();
   const sendLoginNotification = httpsCallable(functions, 'sendLoginNotification');
 
@@ -79,6 +79,13 @@ export const HomeScreen = ({ onNavigate, className, ...props }) => {
     });
     return () => unsubscribe();
   }, []);
+
+  // 앱 진입 시 비로그인이라면 로그인 모달 강제 표시
+  useEffect(() => {
+    if (forceLogin && !user) {
+      setShowLogin(true);
+    }
+  }, [forceLogin, user]);
 
   // 유저 정보(학교/알레르기) 불러오기
   useEffect(() => {
