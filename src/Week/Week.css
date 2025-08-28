@@ -1,3 +1,19 @@
+@media (max-width: 480px) {
+  .week .chart-container {
+    flex-direction: column; /* 차트와 범례를 수직으로 쌓음 */
+    align-items: center;    /* 수직으로 쌓인 요소들을 가운데 정렬 */
+    gap: 24px;              /* 차트와 범례 사이의 간격 추가 */
+  }
+
+  .week .chart-legend {
+    /* 범례 아이템들이 중앙에 보기 좋게 정렬되도록 설정 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+}
+ 
 .week,
 .week * {
   box-sizing: border-box;

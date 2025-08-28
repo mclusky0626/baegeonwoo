@@ -1,4 +1,4 @@
-.home-screen,
+.home-screen, /* modified by AI agent */
 .home-screen * {
   box-sizing: border-box;
 }
@@ -74,61 +74,60 @@
   flex-shrink: 0;
   position: relative;
 }
-.home-screen .date-row {
+.home-screen .header-top {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-}
-.home-screen .date-info {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
   align-items: center;
   justify-content: flex-start;
-  flex-shrink: 0;
-  position: relative;
+  min-height: 44px;
 }
 .home-screen .user-info {
   display: flex;
-  flex-direction: row;
-  gap: 6px;
   align-items: center;
-  justify-content: flex-end;
-  font-size: 13px;
-  max-width: 45%;
+  gap: 12px; /* 버튼과 이메일 사이의 간격 */
+  font-size: 14px;
+  flex: 1; /* 가능한 모든 공간 차지 */
+  overflow: hidden; /* 컨테이너를 벗어나는 내용 숨김 */
 }
 .home-screen .user-email {
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .home-screen .header-login,
 .home-screen .header-logout {
-  background: none;
+  position: static; /* absolute -> static으로 변경 */
+  transform: none; /* transform 제거 */
+  flex-shrink: 0; /* 버튼 크기가 줄어들지 않도록 설정 */
+  min-width: auto; /* 고정 너비 제거 */
+  height: 38px;
+  padding: 8px 20px;
+  border-radius: 10px;
   border: none;
-  cursor: pointer;
-  font-size: 13px;
-}
-.home-screen .calendar {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  position: relative;
-  overflow: visible;
-}
-.home-screen ._2025-5-28 {
-  color: #000000;
-  text-align: left;
-  font-family: "Inter-SemiBold", sans-serif;
-  font-size: 18px;
-  line-height: 21.6px;
+  background: #007aff;
+  color: #fff;
+  font-size: 14px;
   font-weight: 600;
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* hover/active/focus 상태 */
+.home-screen .header-login:hover,
+.home-screen .header-logout:hover { background: #005bb5; }
+.home-screen .header-login:active,
+.home-screen .header-logout:active { background: #004a99; }
+.home-screen .header-login:focus-visible,
+.home-screen .header-logout:focus-visible {
+  outline: 2px solid #99c4ff;
+  outline-offset: 2px;
+}
+
+
 .home-screen .settings {
   flex-shrink: 0;
   width: 24px;
@@ -139,29 +138,23 @@
 .home-screen .school-info {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 10px;               /* 살짝 더 띄움 */
   align-items: center;
   justify-content: flex-start;
   align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
 }
 .home-screen .school {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  position: relative;
-  overflow: visible;
+  width: 28px;             /* 변경: 18 -> 28 */
+  height: 28px;            /* 변경 */
   vertical-align: middle;
 }
-.home-screen .div {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 16px;
-  line-height: 18px; /* align with icon height */
-  font-weight: 500;
-  position: relative;
+
+.home-screen .school-name {
+  color: #333;             /* 살짝 진하게 */
+  font-family: "Inter-SemiBold", sans-serif;
+  font-size: 20px;         /* 변경: 16 -> 20 */
+  line-height: 28px;       /* 아이콘 높이에 맞춤 */
+  font-weight: 600;        /* 강조 */
 }
 .home-screen .content-container {
   display: flex;
@@ -209,6 +202,27 @@
   line-height: 24px;
   font-weight: 700;
   position: relative;
+}
+
+.home-screen .meal-date-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.home-screen .date-select-btn {
+  background: #fff;
+  border: 1px solid #007aff;
+  color: #007aff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.home-screen .date-select-btn:hover {
+  background: #e6f0ff;
 }
 .home-screen .meal-items {
   display: flex;

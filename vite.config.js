@@ -7,5 +7,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0'
   },
-  
+  optimizeDeps: {
+    // Force dependency pre-bundling to avoid Vite's
+    // "Outdated Optimize Dep" 504 errors during dev
+    force: true,
+  },
 })

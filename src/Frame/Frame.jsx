@@ -180,7 +180,11 @@ export const Frame = ({ className = "" }) => {
                   </>
                 ) : (
                   <>
-                    <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} />
+                    <input
+                      className="name-input"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                    />
                     <button className="save-btn" onClick={handleSave}>
                       {t("save")}
                     </button>
