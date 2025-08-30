@@ -92,13 +92,6 @@
   margin-bottom: 4px;
 }
 
-.stats-row {
-  display: flex;
-  justify-content: space-around;
-  margin: 12px 0;
-}
-
-.detail-btn,
 .logout-btn,
 .privacy-btn,
 .save-btn {
@@ -110,7 +103,6 @@
   border-radius: 8px;
   cursor: pointer;
 }
-.detail-btn { background: linear-gradient(90deg,#4d8cfb,#3570e7); color: #fff; }
 .logout-btn { background: linear-gradient(90deg,#4d8cfb,#3570e7); color: #fff; }
 .privacy-btn { background: #eaf3ff; color: #4d8cfb; }
 
