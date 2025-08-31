@@ -32,10 +32,11 @@ const NutritionistView = ({ userData }) => {
     const fetchWeeklyReport = async () => {
       if (!userData?.schoolCode) return;
       setIsWeeklyReportLoading(true);
-      const allRatings = {}; // Accumulate ratings per menu item
+      try {
+        const allRatings = {}; // Accumulate ratings per menu item
 
-      const promises = [];
-      for (let i = 0; i < 7; i++) {
+        const promises = [];
+        for (let i = 0; i < 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
@@ -72,7 +73,12 @@ const NutritionistView = ({ userData }) => {
         const worst = avgRatings[avgRatings.length - 1];
         setWeeklyReport({ best, worst });
       }
-      setIsWeeklyReportLoading(false);
+      } catch (error) {
+        console.error("Error fetching weekly report:", error);
+        setWeeklyReport(null);
+      } finally {
+        setIsWeeklyReportLoading(false);
+      }
     };
     fetchWeeklyReport();
   }, [userData]);
@@ -81,9 +87,10 @@ const NutritionistView = ({ userData }) => {
     const fetchFeedback = async () => {
       if (!userData?.schoolCode) return;
       setLoading(true);
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      try {
+        const dateStr = selectedDate.toISOString().split('T')[0];
 
-      const reviewsQuery = query(
+        const reviewsQuery = query(
         collectionGroup(db, 'reviews'),
         where("date", "==", dateStr),
         where("schoolCode", "==", userData.schoolCode)
@@ -121,7 +128,12 @@ const NutritionistView = ({ userData }) => {
       }
 
       setFeedbackData(aggregatedData);
-      setLoading(false);
+      } catch (error) {
+        console.error("Error fetching daily feedback:", error);
+        setFeedbackData({});
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchFeedback();
