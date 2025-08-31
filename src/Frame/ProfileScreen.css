@@ -1,4 +1,3 @@
-/* Profile screen styles updated by ChatGPT agent */
 .profile-screen,
 .profile-screen * {
   box-sizing: border-box;
@@ -810,6 +809,112 @@
   font-family: "NotoSansKr-Regular", sans-serif;
   font-size: 12px;
   line-height: 14.4px;
+  font-weight: 400;
+  position: relative;
+}
+.profile-screen .tab-bar {
+  background: #f8f9fa;
+  border-style: solid;
+  border-color: #e9ecef;
+  border-width: 1px 0px 0px 0px;
+  padding: 8px 0px 34px 0px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  width: 375px;
+  height: 83px;
+  position: relative;
+}
+.profile-screen .home-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.profile-screen .home {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: visible;
+}
+.profile-screen .div12 {
+  color: #6c757d;
+  text-align: left;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 400;
+  position: relative;
+}
+.profile-screen .calendar-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.profile-screen .calendar {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: visible;
+}
+.profile-screen .settings-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.profile-screen .settings2 {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: visible;
+}
+.profile-screen .div13 {
+  color: #6c757d;
+  text-align: left;
+  font-family: "Inter-SemiBold", sans-serif;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  position: relative;
+}
+.profile-screen .profile-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.profile-screen .user {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: visible;
+}
+.profile-screen .div14 {
+  color: #007aff;
+  text-align: left;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10px;
+  line-height: 12px;
   font-weight: 400;
   position: relative;
 }
