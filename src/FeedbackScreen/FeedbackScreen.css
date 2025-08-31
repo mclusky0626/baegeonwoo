@@ -48,6 +48,57 @@
   position: relative;
   overflow: visible;
 }
+
+/* TabBar active text color */
+.tab.active span {
+  color: #007aff;
+}
+
+/* Student View Layout */
+.student-view-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meal-feedback-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.meal-feedback-item {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  background: #ffffff;
+  flex: 1 1 45%; /* Allow items to grow and shrink, with a base of 45% */
+  min-width: 280px; /* Prevent items from becoming too small */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.date-selector {
+  margin-bottom: 16px;
+}
+
+.date-select-btn {
+  background-color: #007aff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Calendar Popper position fix */
+.react-datepicker-popper {
+  z-index: 1010; /* Ensure it's above other content */
+}
 .feedback-screen .wifi {
   flex-shrink: 0;
   width: 15px;

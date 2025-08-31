@@ -304,6 +304,7 @@ const StudentView = ({ userData }) => {
           dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
           customInput={<button className="date-select-btn">{t("change")}</button>}
           locale={i18n.language}
+          popperPlacement="bottom-end"
         />
         <h3>{selectedDate.toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
       </div>
@@ -311,11 +312,12 @@ const StudentView = ({ userData }) => {
       {loading ? (
         <p>{t("loading")}</p>
       ) : meals.length > 0 ? (
-        <>
-          {meals.map((meal) => (
-            <div key={meal.name} className="meal-feedback-item">
-              <h4>{meal.name}</h4>
-              <StarRating
+        <div className="student-view-content">
+          <div className="meal-feedback-list">
+            {meals.map((meal) => (
+              <div key={meal.name} className="meal-feedback-item">
+                <h4>{meal.name}</h4>
+                <StarRating
                 rating={feedback[meal.name]?.rating || 0}
                 onRatingChange={(rating) => handleFeedbackChange(meal.name, 'rating', rating)}
               />
