@@ -1,3 +1,4 @@
+/* Feedback screen styles updated by ChatGPT agent */
 .feedback-screen,
 .feedback-screen * {
   box-sizing: border-box;
@@ -249,11 +250,6 @@
   height: 12px;
   position: relative;
   overflow: visible;
-}
-
-/* TabBar active text color */
-.tab.active span {
-  color: #007aff;
 }
 
 /* Student View Layout */
@@ -706,93 +702,4 @@
   position: relative;
   flex: 1;
 }
-.feedback-screen .tab-bar {
-  background: #f8f9fa;
-  border-style: solid;
-  border-color: #e9ecef;
-  border-width: 1px 0px 0px 0px;
-  padding: 8px 0px 34px 0px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  width: 375px;
-  height: 83px;
-  position: absolute;
-  left: -0.36px;
-  top: 729px;
-}
-.feedback-screen .home-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.feedback-screen .home {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.feedback-screen .div12 {
-  color: #6c757d;
-  text-align: left;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 10px;
-  line-height: 12px;
-  font-weight: 400;
-  position: relative;
-}
-.feedback-screen .calendar-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.feedback-screen .calendar {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.feedback-screen .settings-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.feedback-screen .settings {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
-.feedback-screen .profile-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-.feedback-screen .user {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  position: relative;
-  overflow: visible;
-}
+

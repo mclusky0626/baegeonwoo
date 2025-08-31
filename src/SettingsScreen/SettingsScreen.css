@@ -1,3 +1,4 @@
+/* Settings screen styles updated by ChatGPT agent */
 .settings-screen {
   padding: 20px;
   background: #fff;
@@ -63,31 +64,6 @@
   bottom: 0;
   background: #fff;
   padding-bottom: 16px;
-}
-.tab-bar {
-  background: #f8f9fa;
-  border-style: solid;
-  border-color: #e9ecef;
-  border-width: 1px 0 0 0;
-  padding: 8px 0 34px 0;
-  display: flex;
-  flex-direction: row;  /* ✅ 반드시 row */
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  position: fixed;      /* ✅ 항상 하단 고정 */
-  bottom: 0;
-  left: 0;
-  z-index: 999;
-}
-
-.tab-bar > div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  flex: 1;              /* ✅ 네 개가 같은 너비 차지 */
 }
 .religion-option {
   display: flex;

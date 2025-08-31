@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import "./TabBar.css";
 
+// Tab bar navigation updated by ChatGPT agent
 export const TabBar = () => {
   const tabs = [
     { key: "home", path: "/", icon: { active: "home1.svg", inactive: "home0.svg" }, label: "홈" },
@@ -16,6 +17,7 @@ export const TabBar = () => {
         <NavLink
           key={key}
           to={path}
+          end
           className={({ isActive }) => (isActive ? "tab active" : "tab")}
         >
           {({ isActive }) => (
@@ -29,3 +31,4 @@ export const TabBar = () => {
     </nav>
   );
 };
+
