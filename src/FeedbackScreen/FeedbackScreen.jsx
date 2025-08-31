@@ -2,16 +2,20 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
-import "./FeedbackScreen.css";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-
 import Calendar from 'react-calendar';
+
+// 분리된 CSS 파일을 import 합니다.
+import "./FeedbackScreen.css"; 
+import "react-datepicker/dist/react-datepicker.css";
 import 'react-calendar/dist/Calendar.css';
+
+// 하드코딩된 태그들을 상수로 관리하여 유지보수성을 높입니다.
+const FEEDBACK_TAGS = ['too_salty', 'too_sweet', 'delicious'];
 
 // Nutritionist view
 const NutritionistView = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [feedbackData, setFeedbackData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -96,7 +100,8 @@ const NutritionistView = () => {
 
         if (reviews.length > 0) {
           const totalRating = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-          const avgRating = totalRating / reviews.filter(r => r.rating).length;
+          const ratedReviewsCount = reviews.filter(r => r.rating).length;
+          const avgRating = ratedReviewsCount > 0 ? totalRating / ratedReviewsCount : 0;
           const tagCounts = reviews.flatMap(r => r.tags || []).reduce((acc, tag) => {
             acc[tag] = (acc[tag] || 0) + 1;
             return acc;
@@ -104,7 +109,7 @@ const NutritionistView = () => {
           const comments = reviews.map(r => r.comment).filter(Boolean);
 
           aggregatedData[menuName] = {
-            avgRating: isNaN(avgRating) ? 0 : avgRating.toFixed(1),
+            avgRating: avgRating.toFixed(1),
             tagCounts,
             comments,
             reviewCount: reviews.length
@@ -158,7 +163,7 @@ const NutritionistView = () => {
                   ))}
                 </ul>
               </div>
-              <div onClick={() => openModal(menuName, data.comments)} style={{cursor: 'pointer'}}>
+              <div onClick={() => openModal(menuName, data.comments)} className="comments-link">
                 <strong>{t('comments')} ({data.comments.length})</strong>
               </div>
             </div>
@@ -192,7 +197,6 @@ const StarRating = ({ rating, onRatingChange }) => {
           key={star}
           className={star <= rating ? "star-filled" : "star-empty"}
           onClick={() => onRatingChange(star)}
-          style={{ cursor: 'pointer', fontSize: '24px' }}
         >
           ★
         </span>
@@ -201,7 +205,6 @@ const StarRating = ({ rating, onRatingChange }) => {
   );
 };
 
-// Placeholder for Student view
 const StudentView = ({ userData }) => {
   const { t, i18n } = useTranslation();
   const [meals, setMeals] = useState([]);
@@ -209,36 +212,6 @@ const StudentView = ({ userData }) => {
   const [feedback, setFeedback] = useState({});
   const [submitStatus, setSubmitStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const handleSubmit = async () => {
-    setSubmitStatus("submitting");
-    const dateStr = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
-
-    try {
-      for (const mealName in feedback) {
-        if (Object.hasOwnProperty.call(feedback, mealName)) {
-          const mealFeedback = feedback[mealName];
-          if (mealFeedback.rating || mealFeedback.comment || mealFeedback.tags?.length > 0) {
-            const reviewsColRef = collection(db, `feedback/${dateStr}/menus/${mealName}/reviews`);
-            await addDoc(reviewsColRef, {
-              userId: auth.currentUser.uid,
-              rating: mealFeedback.rating || null,
-              comment: mealFeedback.comment || "",
-              tags: mealFeedback.tags || [],
-              createdAt: Timestamp.now()
-            });
-          }
-        }
-      }
-      setSubmitStatus("success");
-      setFeedback({}); // Clear feedback form
-      setTimeout(() => setSubmitStatus(""), 3000);
-    } catch (error) {
-      console.error("Error submitting feedback: ", error);
-      setSubmitStatus("error");
-      setTimeout(() => setSubmitStatus(""), 3000);
-    }
-  };
 
   const handleFeedbackChange = (mealName, field, value) => {
     setFeedback(prev => ({
@@ -249,16 +222,46 @@ const StudentView = ({ userData }) => {
       }
     }));
   };
+  
+  const handleTagClick = (mealName, tag) => {
+    const currentTags = feedback[mealName]?.tags || [];
+    const newTags = currentTags.includes(tag)
+      ? currentTags.filter(t => t !== tag)
+      : [...currentTags, tag];
+    handleFeedbackChange(mealName, 'tags', newTags);
+  };
+  
+  const handleSubmit = async () => {
+    setSubmitStatus("submitting");
+    const dateStr = selectedDate.toISOString().split('T')[0];
 
-  // 날짜 포맷 함수
-  function getDateYMD(date) {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${yyyy}${mm}${dd}`;
-  }
+    try {
+      const feedbackPromises = Object.entries(feedback).map(([mealName, mealFeedback]) => {
+        if (mealFeedback.rating || mealFeedback.comment || mealFeedback.tags?.length > 0) {
+          const reviewsColRef = collection(db, `feedback/${dateStr}/menus/${mealName}/reviews`);
+          return addDoc(reviewsColRef, {
+            userId: auth.currentUser.uid,
+            rating: mealFeedback.rating || null,
+            comment: mealFeedback.comment || "",
+            tags: mealFeedback.tags || [],
+            createdAt: Timestamp.now()
+          });
+        }
+        return null;
+      }).filter(Boolean);
 
-  // 급식 데이터 불러오기
+      await Promise.all(feedbackPromises);
+
+      setSubmitStatus("success");
+      setFeedback({}); // Clear feedback form
+      setTimeout(() => setSubmitStatus(""), 3000);
+    } catch (error) {
+      console.error("Error submitting feedback: ", error);
+      setSubmitStatus("error");
+      setTimeout(() => setSubmitStatus(""), 3000);
+    }
+  };
+
   useEffect(() => {
     const fetchMeals = async () => {
       if (!userData || !userData.eduCode || !userData.schoolCode) {
@@ -266,17 +269,20 @@ const StudentView = ({ userData }) => {
         return;
       }
       setLoading(true);
-      const ymd = getDateYMD(selectedDate);
-      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${userData.eduCode}&SD_SCHUL_CODE=${userData.schoolCode}&MLSV_YMD=${ymd}`;
+      const ymd = selectedDate.toISOString().slice(0, 10).replace(/-/g, "");
+      
+      // **중요**: API 키를 코드에서 분리하여 환경변수로 관리합니다.
+      const apiKey = process.env.REACT_APP_NEIS_API_KEY;
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${apiKey}&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${userData.eduCode}&SD_SCHUL_CODE=${userData.schoolCode}&MLSV_YMD=${ymd}`;
+      
       try {
         const res = await fetch(url);
         const data = await res.json();
         const rows = data?.mealServiceDietInfo?.[1]?.row;
         if (rows && rows[0]?.DDISH_NM) {
-          const dishList = rows[0].DDISH_NM.split("<br/>").map((txt) => {
-            const name = txt.replace(/\s*\([^)]+\)/, "").trim();
-            return { name };
-          });
+          const dishList = rows[0].DDISH_NM.split("<br/>").map((txt) => ({
+            name: txt.replace(/\s*\([^)]+\)/, "").trim()
+          }));
           setMeals(dishList);
         } else {
           setMeals([]);
@@ -291,18 +297,14 @@ const StudentView = ({ userData }) => {
     fetchMeals();
   }, [userData, selectedDate]);
 
-  if (loading) {
-    return <div>{t("loading")}</div>;
-  }
-
   return (
-    <>
+    <div className="student-view">
       <div className="date-selector">
         <DatePicker
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}
           dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
-          customInput={<button className="date-select-btn">{t("change")}</button>}
+          customInput={<button className="date-select-btn">{t("change_date")}</button>}
           locale={i18n.language}
           popperPlacement="bottom-end"
         />
@@ -312,58 +314,53 @@ const StudentView = ({ userData }) => {
       {loading ? (
         <p>{t("loading")}</p>
       ) : meals.length > 0 ? (
-        <div className="student-view-content">
+        <>
           <div className="meal-feedback-list">
             {meals.map((meal) => (
               <div key={meal.name} className="meal-feedback-item">
                 <h4>{meal.name}</h4>
                 <StarRating
-                rating={feedback[meal.name]?.rating || 0}
-                onRatingChange={(rating) => handleFeedbackChange(meal.name, 'rating', rating)}
-              />
-              <textarea
-                className="comment-textarea"
-                placeholder={t("comment_placeholder")}
-                value={feedback[meal.name]?.comment || ''}
-                onChange={(e) => handleFeedbackChange(meal.name, 'comment', e.target.value)}
-                maxLength={200}
-              />
-              <div className="tags-container">
-                {['너무 짜요', '너무 달아요', '맛있어요'].map(tag => (
-                  <button
-                    key={tag}
-                    className={`tag-button ${feedback[meal.name]?.tags?.includes(tag) ? 'selected' : ''}`}
-                    onClick={() => {
-                      const currentTags = feedback[meal.name]?.tags || [];
-                      const newTags = currentTags.includes(tag)
-                        ? currentTags.filter(t => t !== tag)
-                        : [...currentTags, tag];
-                      handleFeedbackChange(meal.name, 'tags', newTags);
-                    }}
-                  >
-                    {t(tag)}
-                  </button>
-                ))}
+                  rating={feedback[meal.name]?.rating || 0}
+                  onRatingChange={(rating) => handleFeedbackChange(meal.name, 'rating', rating)}
+                />
+                <textarea
+                  className="comment-textarea"
+                  placeholder={t("comment_placeholder")}
+                  value={feedback[meal.name]?.comment || ''}
+                  onChange={(e) => handleFeedbackChange(meal.name, 'comment', e.target.value)}
+                  maxLength={200}
+                />
+                <div className="tags-container">
+                  {FEEDBACK_TAGS.map(tag => (
+                    <button
+                      key={tag}
+                      className={`tag-button ${feedback[meal.name]?.tags?.includes(tag) ? 'selected' : ''}`}
+                      onClick={() => handleTagClick(meal.name, tag)}
+                    >
+                      {t(tag)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-          <div className="submit-button" onClick={handleSubmit}>
-            <div className="div10">{t('submit_feedback')}</div>
+            ))}
           </div>
-          {submitStatus === "submitting" && <p>{t("submitting")}</p>}
-          {submitStatus === "success" && <p style={{color: 'green'}}>{t("submit_success_message")}</p>}
-          {submitStatus === "error" && <p style={{color: 'red'}}>{t("submit_error_message")}</p>}
+          <button className="submit-button" onClick={handleSubmit} disabled={submitStatus === "submitting"}>
+            {submitStatus === "submitting" ? t("submitting") : t('submit_feedback')}
+          </button>
+          <div className="submit-status-message">
+            {submitStatus === "success" && <p className="success">{t("submit_success_message")}</p>}
+            {submitStatus === "error" && <p className="error">{t("submit_error_message")}</p>}
+          </div>
           <div className="info-text">
-            <div className="div11">피드백은 익명으로 처리되며, 급식 개선에 활용됩니다.</div>
+            <p>{t('feedback_anonymous_info')}</p>
           </div>
         </>
       ) : (
         <p>{t("no_meal_data")}</p>
       )}
-    </>
+    </div>
   );
 };
-
 
 export const FeedbackScreen = ({ className, ...props }) => {
   const { t } = useTranslation();
@@ -387,9 +384,9 @@ export const FeedbackScreen = ({ className, ...props }) => {
   }, [user]);
 
   return (
-    <div className={"feedback-screen " + className}>
+    <div className={"feedback-screen " + (className || "")}>
       <div className="header">
-        <div className="div">{t("feedback_title")}</div>
+        <h1>{t("feedback_title")}</h1>
       </div>
       <div className="content">
         {loading ? (
@@ -405,95 +402,3 @@ export const FeedbackScreen = ({ className, ...props }) => {
 };
 
 export default FeedbackScreen;
-
-.meal-feedback-item {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-}
-
-.star-rating {
-  margin-bottom: 8px;
-}
-
-.star-filled {
-  color: #ffc107;
-}
-
-.star-empty {
-  color: #e0e0e0;
-}
-
-.comment-textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-height: 80px;
-  margin-bottom: 8px;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tag-button {
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 16px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-.tag-button.selected {
-  background-color: #007aff;
-  color: white;
-  border-color: #007aff;
-}
-
-.nutritionist-view {
-  padding: 16px;
-}
-
-.weekly-report-section {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.feedback-summary-item {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
-}
-
-.comment-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
