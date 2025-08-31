@@ -32,28 +32,35 @@ const NutritionistView = ({ userData }) => {
     const fetchWeeklyReport = async () => {
       if (!userData?.schoolCode) return;
       setIsWeeklyReportLoading(true);
-      const allRatings = {};
+      const allRatings = {}; // Accumulate ratings per menu item
+
+      const promises = [];
       for (let i = 0; i < 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
-        const menusRef = collection(db, `feedback/${dateStr}/menus`);
-        const menusSnapshot = await getDocs(menusRef);
-        for (const menuDoc of menusSnapshot.docs) {
-          const menuName = menuDoc.id;
-          const reviewsQuery = query(collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`), where("schoolCode", "==", userData.schoolCode));
-          const reviewsSnapshot = await getDocs(reviewsQuery);
-          reviewsSnapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.rating) {
-              if (!allRatings[menuName]) {
-                allRatings[menuName] = [];
-              }
-              allRatings[menuName].push(data.rating);
-            }
-          });
-        }
+
+        const q = query(
+          collectionGroup(db, 'reviews'),
+          where("date", "==", dateStr),
+          where("schoolCode", "==", userData.schoolCode)
+        );
+        promises.push(getDocs(q));
       }
+
+      const snapshots = await Promise.all(promises);
+      snapshots.forEach(snapshot => {
+        snapshot.forEach(doc => {
+          const review = doc.data();
+          if (review.rating) {
+            if (!allRatings[review.menuName]) {
+              allRatings[review.menuName] = [];
+            }
+            allRatings[review.menuName].push(review.rating);
+          }
+        });
+      });
+
       const avgRatings = Object.entries(allRatings).map(([menuName, ratings]) => ({
         menuName,
         avg: ratings.reduce((a, b) => a + b, 0) / ratings.length,
@@ -75,38 +82,50 @@ const NutritionistView = ({ userData }) => {
       if (!userData?.schoolCode) return;
       setLoading(true);
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const menusRef = collection(db, `feedback/${dateStr}/menus`);
-      const menusSnapshot = await getDocs(menusRef);
-      const aggregatedData = {};
-      for (const menuDoc of menusSnapshot.docs) {
-        const menuName = menuDoc.id;
-        const reviewsQuery = query(collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`), where("schoolCode", "==", userData.schoolCode));
-        const reviewsSnapshot = await getDocs(reviewsQuery);
-        const reviews = [];
-        reviewsSnapshot.forEach(doc => {
-          reviews.push(doc.data());
-        });
-        if (reviews.length > 0) {
-          const totalRating = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-          const avgRating = totalRating / reviews.filter(r => r.rating).length;
-          const tagCounts = reviews.flatMap(r => r.tags || []).reduce((acc, tag) => {
-            acc[tag] = (acc[tag] || 0) + 1;
-            return acc;
-          }, {});
-          const comments = reviews.map(r => r.comment).filter(Boolean);
-          aggregatedData[menuName] = {
-            avgRating: isNaN(avgRating) ? 0 : avgRating.toFixed(1),
-            tagCounts,
-            comments,
-            reviewCount: reviews.length
-          };
+
+      const reviewsQuery = query(
+        collectionGroup(db, 'reviews'),
+        where("date", "==", dateStr),
+        where("schoolCode", "==", userData.schoolCode)
+      );
+
+      const reviewsSnapshot = await getDocs(reviewsQuery);
+      const reviewsByMenu = {};
+
+      reviewsSnapshot.forEach(doc => {
+        const review = doc.data();
+        if (!reviewsByMenu[review.menuName]) {
+          reviewsByMenu[review.menuName] = [];
         }
+        reviewsByMenu[review.menuName].push(review);
+      });
+
+      const aggregatedData = {};
+      for (const menuName in reviewsByMenu) {
+        const reviews = reviewsByMenu[menuName];
+        const totalRating = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+        const ratingsCount = reviews.filter(r => r.rating).length;
+        const avgRating = ratingsCount > 0 ? totalRating / ratingsCount : 0;
+        const tagCounts = reviews.flatMap(r => r.tags || []).reduce((acc, tag) => {
+          acc[tag] = (acc[tag] || 0) + 1;
+          return acc;
+        }, {});
+        const comments = reviews.map(r => r.comment).filter(Boolean);
+
+        aggregatedData[menuName] = {
+          avgRating: avgRating.toFixed(1),
+          tagCounts,
+          comments,
+          reviewCount: reviews.length
+        };
       }
+
       setFeedbackData(aggregatedData);
       setLoading(false);
     };
+
     fetchFeedback();
-  }, [selectedDate]);
+  }, [selectedDate, userData]);
 
   return (
     <div className="nutritionist-view">
@@ -165,6 +184,8 @@ const StudentView = ({ userData }) => {
               userId: auth.currentUser.uid,
               schoolCode: userData.schoolCode,
               eduCode: userData.eduCode,
+              date: dateStr,
+              menuName: mealName,
               rating: mealFeedback.rating || null,
               comment: mealFeedback.comment || "",
               tags: mealFeedback.tags || [],
