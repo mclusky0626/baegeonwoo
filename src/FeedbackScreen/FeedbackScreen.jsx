@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, Timestamp, getDocs, query, where } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import "./FeedbackScreen.css";
 import DatePicker from "react-datepicker";
@@ -9,7 +9,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 // Nutritionist view (No changes here)
-const NutritionistView = () => {
+const NutritionistView = ({ userData }) => {
   const { t, i18n } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [feedbackData, setFeedbackData] = useState(null);
@@ -30,6 +30,7 @@ const NutritionistView = () => {
 
   useEffect(() => {
     const fetchWeeklyReport = async () => {
+      if (!userData?.schoolCode) return;
       setIsWeeklyReportLoading(true);
       const allRatings = {};
       for (let i = 0; i < 7; i++) {
@@ -40,8 +41,8 @@ const NutritionistView = () => {
         const menusSnapshot = await getDocs(menusRef);
         for (const menuDoc of menusSnapshot.docs) {
           const menuName = menuDoc.id;
-          const reviewsRef = collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`);
-          const reviewsSnapshot = await getDocs(reviewsRef);
+          const reviewsQuery = query(collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`), where("schoolCode", "==", userData.schoolCode));
+          const reviewsSnapshot = await getDocs(reviewsQuery);
           reviewsSnapshot.forEach(doc => {
             const data = doc.data();
             if (data.rating) {
@@ -67,10 +68,11 @@ const NutritionistView = () => {
       setIsWeeklyReportLoading(false);
     };
     fetchWeeklyReport();
-  }, []);
+  }, [userData]);
 
   useEffect(() => {
     const fetchFeedback = async () => {
+      if (!userData?.schoolCode) return;
       setLoading(true);
       const dateStr = selectedDate.toISOString().split('T')[0];
       const menusRef = collection(db, `feedback/${dateStr}/menus`);
@@ -78,8 +80,8 @@ const NutritionistView = () => {
       const aggregatedData = {};
       for (const menuDoc of menusSnapshot.docs) {
         const menuName = menuDoc.id;
-        const reviewsRef = collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`);
-        const reviewsSnapshot = await getDocs(reviewsRef);
+        const reviewsQuery = query(collection(db, `feedback/${dateStr}/menus/${menuName}/reviews`), where("schoolCode", "==", userData.schoolCode));
+        const reviewsSnapshot = await getDocs(reviewsQuery);
         const reviews = [];
         reviewsSnapshot.forEach(doc => {
           reviews.push(doc.data());
@@ -159,7 +161,15 @@ const StudentView = ({ userData }) => {
           const mealFeedback = feedback[mealName];
           if (mealFeedback.rating || mealFeedback.comment || mealFeedback.tags?.length > 0) {
             const reviewsColRef = collection(db, `feedback/${dateStr}/menus/${mealName}/reviews`);
-            await addDoc(reviewsColRef, { userId: auth.currentUser.uid, rating: mealFeedback.rating || null, comment: mealFeedback.comment || "", tags: mealFeedback.tags || [], createdAt: Timestamp.now() });
+            await addDoc(reviewsColRef, {
+              userId: auth.currentUser.uid,
+              schoolCode: userData.schoolCode,
+              eduCode: userData.eduCode,
+              rating: mealFeedback.rating || null,
+              comment: mealFeedback.comment || "",
+              tags: mealFeedback.tags || [],
+              createdAt: Timestamp.now()
+            });
           }
         }
       }
@@ -264,7 +274,7 @@ export const FeedbackScreen = ({ className, ...props }) => {
     <div className={"feedback-screen " + className}>
       <div className="header"><div className="div">{t("feedback_title")}</div></div>
       <div className="content">
-        {loading ? <div>{t("loading")}</div> : userData?.role === 'nutritionist' ? <NutritionistView /> : <StudentView userData={userData} />}
+        {loading ? <div>{t("loading")}</div> : userData?.role === 'nutritionist' ? <NutritionistView userData={userData} /> : <StudentView userData={userData} />}
       </div>
     </div>
   );
