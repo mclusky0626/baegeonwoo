@@ -119,11 +119,29 @@
   "닭고기": "Chicken",
   "쇠고기": "Beef",
   "오징어": "Squid",
-  "조개류": "Shellfish"
- 
+  "조개류": "Shellfish",
 
-
-
+  "feedback_title": "Meal Feedback",
+  "nutritionist_dashboard_title": "Nutritionist Feedback Dashboard",
+  "feature_in_development": "Feature in development.",
+  "submit_feedback": "Submit",
+  "submitting": "Submitting...",
+  "submit_success_message": "Feedback submitted successfully!",
+  "submit_error_message": "An error occurred. Please try again.",
+  "weekly_report": "Weekly Report",
+  "best_menu": "Best Menu",
+  "worst_menu": "Worst Menu",
+  "no_weekly_data": "No weekly data available.",
+  "average_rating": "Average Rating",
+  "tag_summary": "Tag Summary",
+  "reviews": "reviews",
+  "comments": "Comments",
+  "no_comments": "No comments.",
+  "no_feedback_data": "No feedback data for the selected date.",
+  "comment_placeholder": "Leave more detailed comments...",
+  "너무 짜요": "Too salty",
+  "너무 달아요": "Too sweet",
+  "맛있어요": "Delicious"
 }
 
 

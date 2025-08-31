@@ -124,8 +124,27 @@
   "닭고기": "닭고기",
   "쇠고기": "쇠고기",
   "오징어": "오징어",
-  "조개류": "조개류"
+  "조개류": "조개류",
 
-
-
+  "feedback_title": "급식 피드백",
+  "nutritionist_dashboard_title": "영양사 피드백 대시보드",
+  "feature_in_development": "기능 개발 중입니다.",
+  "submit_feedback": "제출하기",
+  "submitting": "제출 중...",
+  "submit_success_message": "피드백이 성공적으로 제출되었습니다!",
+  "submit_error_message": "오류가 발생했습니다. 다시 시도해주세요.",
+  "weekly_report": "주간 리포트",
+  "best_menu": "최고의 메뉴",
+  "worst_menu": "최악의 메뉴",
+  "no_weekly_data": "주간 데이터가 없습니다.",
+  "average_rating": "평균 별점",
+  "tag_summary": "태그 요약",
+  "reviews": "개의 리뷰",
+  "comments": "코멘트",
+  "no_comments": "코멘트가 없습니다.",
+  "no_feedback_data": "선택한 날짜에 피드백 데이터가 없습니다.",
+  "comment_placeholder": "자세한 의견을 남겨주세요...",
+  "너무 짜요": "너무 짜요",
+  "너무 달아요": "너무 달아요",
+  "맛있어요": "맛있어요"
 }

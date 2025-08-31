@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Added updateDoc, arrayUnion
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Added setDoc
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Layout } from "../components/Layout"; // Assuming this is used elsewhere
@@ -228,7 +228,16 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
     e.preventDefault();
     setLoginError("");
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Set default role for new user
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        role: 'student',
+        createdAt: new Date()
+      });
+
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
       console.log('로컬 회원가입 성공 알림 표시.');
@@ -273,7 +282,20 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
   const handleGoogleLogin = async () => {
     setLoginError("");
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Check if user exists, if not, create a new document
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          role: 'student',
+          createdAt: new Date()
+        });
+      }
+
       setShowLogin(false);
       showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
       console.log('로컬 구글 로그인 성공 알림 표시.');
