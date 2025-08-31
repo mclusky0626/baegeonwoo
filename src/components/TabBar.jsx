@@ -3,10 +3,11 @@ import "./TabBar.css";
 
 export const TabBar = () => {
   const tabs = [
-    { key: "home",     path: "/home",     icon: "home0.svg",     label: "홈" },
+    { key: "home",     path: "/",         icon: "home0.svg",     label: "홈" },
     { key: "week",     path: "/week",     icon: "calendar0.svg", label: "급식표" },
+    { key: "feedback", path: "/feedback", icon: "message-square0.svg", label: "피드백" },
     { key: "settings", path: "/settings", icon: "settings1.svg", label: "설정" },
-    { key: "frame",    path: "/profile",  icon: "user0.svg",     label: "내정보" },
+    { key: "frame",    path: "/frame",    icon: "user0.svg",     label: "내정보" },
   ];
 
   return (
