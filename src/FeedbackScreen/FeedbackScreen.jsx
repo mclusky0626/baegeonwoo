@@ -9,6 +9,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
+// Feedback screen updated by ChatGPT agent
+
 // Nutritionist view
 const NutritionistView = () => {
   const { t } = useTranslation();
@@ -302,11 +304,17 @@ const StudentView = ({ userData }) => {
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}
           dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
-          customInput={<button className="date-select-btn">{t("change")}</button>}
+          customInput={<button className="date-select-btn">{t("change_date")}</button>}
           locale={i18n.language}
           popperPlacement="bottom-end"
         />
-        <h3>{selectedDate.toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+        <h3>
+          {selectedDate.toLocaleDateString(i18n.language, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </h3>
       </div>
 
       {loading ? (
@@ -318,51 +326,62 @@ const StudentView = ({ userData }) => {
               <div key={meal.name} className="meal-feedback-item">
                 <h4>{meal.name}</h4>
                 <StarRating
-                rating={feedback[meal.name]?.rating || 0}
-                onRatingChange={(rating) => handleFeedbackChange(meal.name, 'rating', rating)}
-              />
-              <textarea
-                className="comment-textarea"
-                placeholder={t("comment_placeholder")}
-                value={feedback[meal.name]?.comment || ''}
-                onChange={(e) => handleFeedbackChange(meal.name, 'comment', e.target.value)}
-                maxLength={200}
-              />
-              <div className="tags-container">
-                {['너무 짜요', '너무 달아요', '맛있어요'].map(tag => (
-                  <button
-                    key={tag}
-                    className={`tag-button ${feedback[meal.name]?.tags?.includes(tag) ? 'selected' : ''}`}
-                    onClick={() => {
-                      const currentTags = feedback[meal.name]?.tags || [];
-                      const newTags = currentTags.includes(tag)
-                        ? currentTags.filter(t => t !== tag)
-                        : [...currentTags, tag];
-                      handleFeedbackChange(meal.name, 'tags', newTags);
-                    }}
-                  >
-                    {t(tag)}
-                  </button>
-                ))}
+                  rating={feedback[meal.name]?.rating || 0}
+                  onRatingChange={(rating) =>
+                    handleFeedbackChange(meal.name, "rating", rating)
+                  }
+                />
+                <textarea
+                  className="comment-textarea"
+                  placeholder={t("comment_placeholder")}
+                  value={feedback[meal.name]?.comment || ""}
+                  onChange={(e) =>
+                    handleFeedbackChange(meal.name, "comment", e.target.value)
+                  }
+                  maxLength={200}
+                />
+                <div className="tags-container">
+                  {["너무 짜요", "너무 달아요", "맛있어요"].map((tag) => (
+                    <button
+                      key={tag}
+                      className={`tag-button ${
+                        feedback[meal.name]?.tags?.includes(tag) ? "selected" : ""
+                      }`}
+                      onClick={() => {
+                        const currentTags = feedback[meal.name]?.tags || [];
+                        const newTags = currentTags.includes(tag)
+                          ? currentTags.filter((t) => t !== tag)
+                          : [...currentTags, tag];
+                        handleFeedbackChange(meal.name, "tags", newTags);
+                      }}
+                    >
+                      {t(tag)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           <div className="submit-button" onClick={handleSubmit}>
-            <div className="div10">{t('submit_feedback')}</div>
+            <div className="div10">{t("submit_feedback")}</div>
           </div>
           {submitStatus === "submitting" && <p>{t("submitting")}</p>}
-          {submitStatus === "success" && <p style={{color: 'green'}}>{t("submit_success_message")}</p>}
-          {submitStatus === "error" && <p style={{color: 'red'}}>{t("submit_error_message")}</p>}
+          {submitStatus === "success" && (
+            <p style={{ color: "green" }}>{t("submit_success_message")}</p>
+          )}
+          {submitStatus === "error" && (
+            <p style={{ color: "red" }}>{t("submit_error_message")}</p>
+          )}
           <div className="info-text">
             <div className="div11">피드백은 익명으로 처리되며, 급식 개선에 활용됩니다.</div>
           </div>
-        </>
+        </div>
       ) : (
         <p>{t("no_meal_data")}</p>
       )}
     </>
   );
-};
+  };
 
 
 export const FeedbackScreen = ({ className, ...props }) => {
@@ -405,95 +424,3 @@ export const FeedbackScreen = ({ className, ...props }) => {
 };
 
 export default FeedbackScreen;
-
-.meal-feedback-item {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-}
-
-.star-rating {
-  margin-bottom: 8px;
-}
-
-.star-filled {
-  color: #ffc107;
-}
-
-.star-empty {
-  color: #e0e0e0;
-}
-
-.comment-textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-height: 80px;
-  margin-bottom: 8px;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tag-button {
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 16px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-.tag-button.selected {
-  background-color: #007aff;
-  color: white;
-  border-color: #007aff;
-}
-
-.nutritionist-view {
-  padding: 16px;
-}
-
-.weekly-report-section {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.feedback-summary-item {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
-}
-
-.comment-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
