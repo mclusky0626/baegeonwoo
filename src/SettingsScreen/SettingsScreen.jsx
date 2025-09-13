@@ -24,7 +24,7 @@ export const SettingsScreen = ({ onNavigate }) => {
 
   // 번역 가능한 옵션들
   const religions = [
-    "이슬람", "힌두교", "불교", "없음"
+    "이슬람", "힌두교", "불교", "기독교", "없음"
   ];
   const dietTypes = [
     "일반식", "비건", "락토오보", "페스코"

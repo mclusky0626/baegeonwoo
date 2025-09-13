@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
+import { Layout } from "./Layout";
 
 export const ProtectedLayout = () => {
   const location = useLocation();
@@ -22,8 +23,14 @@ export const ProtectedLayout = () => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Only render the protected content; global Layout lives in App
-  return <Outlet />;
+  // Match previous structure: content then bottom tab Layout
+  return (
+    <>
+      <Outlet />
+      <Layout />
+    </>
+  );
 };
 
 export default ProtectedLayout;
+

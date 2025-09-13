@@ -8,7 +8,6 @@ import { Frame } from "./Frame/Frame";
 import { PrivacyPolicy } from "./PrivacyPolicy/PrivacyPolicy";
 import { Week } from "./Week/Week";
 import ProtectedLayout from "./components/ProtectedLayout";
-import { Layout } from "./components/Layout";
 // (선택) NotFound 페이지
 const NotFound = () => (
   <div style={{ padding: 40, textAlign: "center" }}>
@@ -38,8 +37,6 @@ export default function App() {
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {/* Always-visible bottom tab bar */}
-      <Layout />
     </BrowserRouter>
   );
 }
