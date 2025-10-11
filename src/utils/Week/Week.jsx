@@ -11,11 +11,11 @@ import "./Week.css";
 import calander from "../imgs/CCC.png";
 import chart from "../imgs/chart.png";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
-import { auth, db } from "../firebase";
+import { auth, db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { Layout } from "../components/Layout";
-import { violatesReligion } from "../utils/religionRules";
-import { violatesDiet } from "../utils/dietRules";
+import { Layout } from "../../components/Layout";
+import { violatesReligion } from "../religionRules";
+import { violatesDiet } from "../dietRules";
 
 // 알레르기 코드 매핑(항상 한글로!)
 const allergyMap = {

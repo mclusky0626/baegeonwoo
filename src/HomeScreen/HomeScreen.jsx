@@ -113,7 +113,7 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
     }
     fetchUserSettings();
     // eslint-disable-next-line
-  }, [user, i18n.language]);
+  }, [user, i18n.language]); 
 
   // --- FCM 토큰 관리 및 Firestore 저장 로직 추가 ---
   useEffect(() => {
@@ -208,7 +208,7 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
       }
 
       if (token) {
-        console.log('FCM 토큰이 있습니다. 로그인 알림을 보냅니다.');
+        console.log('FCM 토큰이 있습니다. 로그인 알림을 보냅니다.'); //개지랄이다 진짜
         try {
           await sendLoginNotification({ token });
           console.log('Firebase Cloud Function을 통해 로그인 알림 전송 성공.');
