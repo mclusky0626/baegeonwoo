@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import i18n from "./i18n";
 import { HomeScreen } from "./HomeScreen/HomeScreen";
-import { FeedbackScreen } from "./FeedbackScreen/FeedbackScreen";
 import { SettingsScreen } from "./SettingsScreen/SettingsScreen";
 import { Frame } from "./Frame/Frame";
 import { PrivacyPolicy } from "./PrivacyPolicy/PrivacyPolicy";
@@ -29,7 +28,6 @@ export default function App() {
         <Route element={<ProtectedLayout />}> 
           <Route path="/" element={<HomeScreen />} />
           <Route path="/settings" element={<SettingsScreen />} />
-          <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="/week" element={<Week />} />
           <Route path="/frame" element={<Frame />} />
         </Route>
