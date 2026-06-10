@@ -7,6 +7,7 @@ import { Frame } from "./Frame/Frame";
 import { PrivacyPolicy } from "./PrivacyPolicy/PrivacyPolicy";
 import { Week } from "./Week/Week";
 import ProtectedLayout from "./components/ProtectedLayout";
+import { Layout } from "./components/Layout";
 // (선택) NotFound 페이지
 const NotFound = () => (
   <div style={{ padding: 40, textAlign: "center" }}>
@@ -21,12 +22,12 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
+        <Route path="/" element={<><HomeScreen /><Layout /></>} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/login" element={<HomeScreen forceLogin />} />
+        <Route path="/login" element={<><HomeScreen forceLogin /><Layout /></>} />
 
         {/* Protected routes (require login) */}
         <Route element={<ProtectedLayout />}> 
-          <Route path="/" element={<HomeScreen />} />
           <Route path="/settings" element={<SettingsScreen />} />
           <Route path="/week" element={<Week />} />
           <Route path="/frame" element={<Frame />} />

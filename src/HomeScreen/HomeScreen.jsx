@@ -1,347 +1,265 @@
-import "./HomeScreen.css"; // modified by AI agent
-import React, { useEffect, useState } from "react";
+import "./HomeScreen.css";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { auth, db, googleProvider, functions } from "../firebase";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Added setDoc
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Layout } from "../components/Layout"; // Assuming this is used elsewhere
-import { violatesReligion } from "../utils/religionRules"; // Assuming these are correctly imported
-import { violatesDiet } from "../utils/dietRules"; // Assuming these are correctly imported
-import { showLocalNotification, getCurrentToken, requestNotificationPermission, retrieveToken } from "../messaging";
+import { auth, db, googleProvider, functions } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut
+} from "firebase/auth";
+import { arrayUnion, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
+import {
+  assessDish,
+  buildMealUrl,
+  getDateDisplay,
+  parseMealRows,
+  summarizeDishes
+} from "../utils/mealUtils";
+import { EMPTY_SCHOOL, getSchoolInitials, hasSchool, resolveSchool } from "../utils/school";
+import {
+  getCurrentToken,
+  requestNotificationPermission,
+  retrieveToken,
+  showLocalNotification
+} from "../messaging";
 
-export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props }) => {
+const DEFAULT_PREFERENCES = {
+  allergies: [],
+  religions: [],
+  dietType: ""
+};
+
+export const HomeScreen = ({ className = "", forceLogin = false }) => {
   const { t, i18n } = useTranslation();
-  const sendLoginNotification = httpsCallable(functions, 'sendLoginNotification');
+  const navigate = useNavigate();
+  const sendLoginNotification = httpsCallable(functions, "sendLoginNotification");
 
-  // 급식/학교 관련
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [schoolName, setSchoolName] = useState(t("select_school"));
-  const [eduCode, setEduCode] = useState("");
-  const [schoolCode, setSchoolCode] = useState("");
-
-  // 유저 관련
   const [user, setUser] = useState(null);
+  const [school, setSchool] = useState(EMPTY_SCHOOL);
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [mealGroups, setMealGroups] = useState([]);
+  const [selectedMealCode, setSelectedMealCode] = useState("2");
+  const [loading, setLoading] = useState(true);
+  const [mealError, setMealError] = useState("");
+  const [detailMenu, setDetailMenu] = useState(null);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState(forceLogin);
   const [loginTab, setLoginTab] = useState("login");
-  const [allergies, setAllergies] = useState([]);
-  const [religions, setReligions] = useState([]);
-  const [dietType, setDietType] = useState("");
-  const [detailMenu, setDetailMenu] = useState(null);
 
-  // 알레르기 코드 → 이름 매핑
-  const allergyMap = {
-    1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
-    7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
-    12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
-    17: "오징어", 18: "조개류"
-  };
-
-  // 날짜 포맷 함수
-  function getDateYMD(date) {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${yyyy}${mm}${dd}`;
-  }
-  function getDateDisplay(date) {
-    const yyyy = date.getFullYear();
-    const mm = date.getMonth() + 1;
-    const dd = date.getDate();
-    // 언어에 따라 요일명
-    const dayNames = i18n.language === "en"
-      ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-      : ["일", "월", "화", "수", "목", "금", "토"];
-    const day = dayNames[date.getDay()];
-    return i18n.language === "en"
-      ? `${yyyy}-${mm}-${dd} (${day})`
-      : `${yyyy}년 ${mm}월 ${dd}일 (${day})`;
-  }
-
-
-  // 로그인 감시
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
     });
+
     return () => unsubscribe();
   }, []);
 
-  // 앱 진입 시 비로그인이라면 로그인 모달 강제 표시
   useEffect(() => {
-    if (forceLogin && !user) {
-      setShowLogin(true);
-    }
+    if (forceLogin && !user) setShowLogin(true);
   }, [forceLogin, user]);
 
-  // 유저 정보(학교/알레르기) 불러오기
   useEffect(() => {
     async function fetchUserSettings() {
-      if (user) {
-        const ref = doc(db, "users", user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const d = snap.data();
-          setSchoolName(d.schoolName || t("select_school"));
-          setEduCode(d.eduCode || "");
-          setSchoolCode(d.schoolCode || "");
-          setAllergies(d.allergies || []);
-          setReligions(d.religion || []);
-          setDietType(d.dietType || "");
-        }
-      } else {
-        setSchoolName(t("select_school"));
-        setEduCode("");
-        setSchoolCode("");
-        setAllergies([]);
-        setReligions([]);
-        setDietType("");
+      if (!user) {
+        setSchool(EMPTY_SCHOOL);
+        setPreferences(DEFAULT_PREFERENCES);
+        return;
       }
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const data = snap.exists() ? snap.data() : {};
+      setSchool(resolveSchool(data));
+      setPreferences({
+        allergies: data.allergies || [],
+        religions: data.religion || [],
+        dietType: data.dietType || ""
+      });
     }
+
     fetchUserSettings();
-    // eslint-disable-next-line
-  }, [user, i18n.language]);
+  }, [user]);
 
-  // --- FCM 토큰 관리 및 Firestore 저장 로직 추가 ---
-  useEffect(() => {
-    async function handleNotificationToken() {
-      if (user) {
-        try {
-          // 사용자에게 알림 권한을 요청합니다.
-          // 사용자가 이미 권한을 부여했거나 거부했다면 다시 묻지 않습니다.
-          await requestNotificationPermission();
-          // 서비스 워커가 등록되어 있다면 토큰을 가져옵니다.
-          const token = await retrieveToken(window.swRegistration);
-          if (token) {
-            console.log('FCM Token:', token);
-            // 사용자 문서에 토큰을 저장합니다.
-            // 여러 기기에서 로그인할 수 있으므로 배열 형태로 저장하는 것이 좋습니다.
-            // setDoc 대신 updateDoc과 arrayUnion을 사용하여 기존 배열에 추가합니다.
-            const userRef = doc(db, "users", user.uid);
-            await updateDoc(userRef, {
-              fcmTokens: arrayUnion(token)
-            }, { merge: true }); // merge: true를 사용하여 기존 필드를 덮어쓰지 않고 병합
-            console.log('FCM Token saved/updated in Firestore for user:', user.uid);
-          }
-        } catch (e) {
-          console.error("알림 토큰 설정 중 오류 발생:", e);
-          // 사용자가 알림 권한을 거부했거나 다른 오류가 발생했을 때 처리
-        }
-      }
-    }
-    handleNotificationToken();
-  }, [user]); // user 객체가 변경될 때마다 이 Effect를 실행 (로그인/로그아웃 시)
-  // --- FCM 토큰 관리 로직 끝 ---
-
-  // 급식 데이터 불러오기 (학교/날짜 바뀔 때마다)
   useEffect(() => {
     async function fetchMeals() {
-      setLoading(true);
-      // 학교 코드 없으면 급식 불러오지 않음
-      if (!eduCode || !schoolCode) {
-        setMeals([]);
+      if (!hasSchool(school)) {
+        setMealGroups([]);
         setLoading(false);
         return;
       }
-      const ymd = getDateYMD(selectedDate);
-      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${eduCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${ymd}`;
+
+      setLoading(true);
+      setMealError("");
+
       try {
-        const res = await fetch(url);
+        const res = await fetch(buildMealUrl({
+          eduCode: school.eduCode,
+          schoolCode: school.schoolCode,
+          date: selectedDate,
+          size: 10
+        }));
         const data = await res.json();
-        const rows = data?.mealServiceDietInfo?.[1]?.row;
-        if (rows && rows[0]?.DDISH_NM) {
-          const dishList = rows[0].DDISH_NM.split("<br/>").map((txt) => {
-            const name = txt.replace(/\s*\([^)]+\)/, "").trim();
-            const match = txt.match(/\(([^)]+)\)/);
-            const codes = match ? match[1].split(".").map(Number) : [];
-            const ingredients = codes.map((code) => allergyMap[code] || code).filter(Boolean);
-            return { name, ingredients };
-          });
-          setMeals(dishList);
-        } else {
-          setMeals([]);
-        }
-      } catch (error) { // Changed generic catch to catch specific error for logging
+        const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+        const parsedRows = parseMealRows(rows);
+
+        setMealGroups(parsedRows);
+        setSelectedMealCode((current) => {
+          if (!parsedRows.length || parsedRows.some((meal) => meal.code === current)) return current;
+          return parsedRows.find((meal) => meal.code === "2")?.code || parsedRows[0].code;
+        });
+      } catch (error) {
         console.error("급식 데이터를 불러오는 중 오류 발생:", error);
-        setMeals([]);
+        setMealGroups([]);
+        setMealError(t("meal_load_failed"));
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
+
     fetchMeals();
-    // eslint-disable-next-line
-  }, [selectedDate, eduCode, schoolCode, i18n.language]);
+  }, [school.eduCode, school.schoolCode, selectedDate, t]);
 
-  // 로그인/회원가입/로그아웃
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError("");
+  const activeMeal = useMemo(() => {
+    return mealGroups.find((meal) => meal.code === selectedMealCode) || mealGroups[0] || null;
+  }, [mealGroups, selectedMealCode]);
+
+  const activeSummary = useMemo(() => {
+    return summarizeDishes(activeMeal?.dishes || [], preferences);
+  }, [activeMeal, preferences]);
+
+  const availableMealNames = mealGroups.map((meal) => meal.name).join(" · ");
+
+  async function saveNotificationToken(currentUser) {
+    if (!currentUser || !("Notification" in window)) return;
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setShowLogin(false);
-      // 로컬 알림을 먼저 띄워 사용자에게 즉각적인 피드백을 제공합니다.
-      showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      console.log('로컬 로그인 성공 알림 표시.');
-
-      // FCM 푸시 알림을 보내기 위해 토큰을 확인하고 시도합니다.
-      let token = getCurrentToken(); // 현재 저장된 토큰이 있는지 확인
+      let token = getCurrentToken();
       if (!token && window.swRegistration) {
-        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
-        try {
-          await requestNotificationPermission(); // 알림 권한 요청 (브라우저 팝업)
-          token = await retrieveToken(window.swRegistration); // 토큰 발급/갱신
-        } catch (permissionError) {
-          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
-        }
+        await requestNotificationPermission();
+        token = await retrieveToken(window.swRegistration);
       }
 
-      if (token) {
-        console.log('FCM 토큰이 있습니다. 로그인 알림을 보냅니다.');
-        try {
-          await sendLoginNotification({ token });
-          console.log('Firebase Cloud Function을 통해 로그인 알림 전송 성공.');
-        } catch (sendError) {
-          console.error('Firebase Cloud Function을 통한 로그인 알림 전송 실패:', sendError);
-        }
-      } else {
-        console.log('FCM 토큰이 없어 로그인 푸시 알림을 보낼 수 없습니다.');
+      if (!token) return;
+
+      await setDoc(doc(db, "users", currentUser.uid), {
+        fcmTokens: arrayUnion(token),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      try {
+        await sendLoginNotification({ token });
+      } catch (sendError) {
+        console.warn("로그인 푸시 알림 전송 실패:", sendError);
       }
-    } catch (err) {
+    } catch (error) {
+      console.warn("알림 토큰 설정을 건너뜁니다:", error);
+    }
+  }
+
+  async function completeLogin(currentUser, isNewUser = false) {
+    const baseProfile = {
+      email: currentUser.email,
+      role: "student",
+      lastLoginAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    if (isNewUser) {
+      Object.assign(baseProfile, {
+        dietType: "일반식",
+        allergies: [],
+        religion: [],
+        createdAt: serverTimestamp()
+      });
+    }
+
+    await setDoc(doc(db, "users", currentUser.uid), baseProfile, { merge: true });
+    setShowLogin(false);
+    setPassword("");
+    showLocalNotification(t("login_success"), { icon: "/icon.png" });
+    await saveNotificationToken(currentUser);
+    navigate("/", { replace: true });
+  }
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setLoginError("");
+
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await completeLogin(credential.user, false);
+    } catch (error) {
+      console.error("로그인 중 오류 발생:", error);
       setLoginError(t("login_failed"));
-      console.error('로그인 중 오류 발생:', err);
     }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleRegister = async (event) => {
+    event.preventDefault();
     setLoginError("");
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      await completeLogin(credential.user, true);
+    } catch (error) {
+      console.error("회원가입 중 오류 발생:", error);
+      setLoginError(`${t("register_failed")}${error.message}`);
+    }
+  };
 
-      // Set default role for new user
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        role: 'student',
-        createdAt: new Date()
-      });
+  const handleGoogleLogin = async () => {
+    setLoginError("");
 
-      setShowLogin(false);
-      showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      console.log('로컬 회원가입 성공 알림 표시.');
-
-      let token = getCurrentToken();
-      if (!token && window.swRegistration) {
-        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
-        try {
-          await requestNotificationPermission();
-          token = await retrieveToken(window.swRegistration);
-        } catch (permissionError) {
-          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
-        }
-      }
-
-      if (token) {
-        console.log('FCM 토큰이 있습니다. 회원가입 알림을 보냅니다.');
-        try {
-          await sendLoginNotification({ token }); // sendLoginNotification 대신 sendRegisterNotification 같은 함수를 따로 만들 수도 있습니다.
-          console.log('Firebase Cloud Function을 통해 회원가입 알림 전송 성공.');
-        } catch (sendError) {
-          console.error('Firebase Cloud Function을 통한 회원가입 알림 전송 실패:', sendError);
-        }
-      } else {
-        console.log('FCM 토큰이 없어 회원가입 푸시 알림을 보낼 수 없습니다.');
-      }
-    } catch (err) {
-      setLoginError(t("register_failed") + err.message);
-      console.error('회원가입 중 오류 발생:', err);
+    try {
+      const credential = await signInWithPopup(auth, googleProvider);
+      const snap = await getDoc(doc(db, "users", credential.user.uid));
+      await completeLogin(credential.user, !snap.exists());
+    } catch (error) {
+      console.error("구글 로그인 중 오류 발생:", error);
+      setLoginError(`${t("google_login")}: ${error.message}`);
     }
   };
 
   const handleLogout = async () => {
     await signOut(auth);
-    console.log('사용자 로그아웃 완료.');
-    // 로그아웃 시 Fcm 토큰을 Firestore에서 제거할 수도 있습니다.
-    // 이는 특정 기기에서만 알림을 받게 하거나, 더 이상 사용하지 않는 토큰을 정리하는 데 유용합니다.
-    // 예: const userRef = doc(db, "users", user.uid); await updateDoc(userRef, { fcmTokens: arrayRemove(token) });
+    navigate("/", { replace: true });
   };
 
-  // 구글 로그인 핸들러
-  const handleGoogleLogin = async () => {
-    setLoginError("");
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      // Check if user exists, if not, create a new document
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          role: 'student',
-          createdAt: new Date()
-        });
-      }
-
-      setShowLogin(false);
-      showLocalNotification(t('login_success'), { icon: '/temp/icon-192.png' });
-      console.log('로컬 구글 로그인 성공 알림 표시.');
-
-      let token = getCurrentToken();
-      if (!token && window.swRegistration) {
-        console.log('현재 토큰이 없거나 유효하지 않습니다. 권한을 요청하고 새로 발급을 시도합니다.');
-        try {
-          await requestNotificationPermission();
-          token = await retrieveToken(window.swRegistration);
-        } catch (permissionError) {
-          console.warn('알림 권한 요청 또는 토큰 발급 실패 (사용자 거부 또는 오류):', permissionError);
-        }
-      }
-
-      if (token) {
-        console.log('FCM 토큰이 있습니다. 구글 로그인 알림을 보냅니다.');
-        try {
-          await sendLoginNotification({ token });
-          console.log('Firebase Cloud Function을 통해 구글 로그인 알림 전송 성공.');
-        } catch (sendError) {
-          console.error('Firebase Cloud Function을 통한 구글 로그인 알림 전송 실패:', sendError);
-        }
-      } else {
-        console.log('FCM 토큰이 없어 구글 로그인 푸시 알림을 보낼 수 없습니다.');
-      }
-    } catch (err) {
-      setLoginError(t("google_login") + ": " + err.message);
-      console.error('구글 로그인 중 오류 발생:', err);
-    }
-  };
+  const schoolReady = hasSchool(school);
 
   return (
-    <div className={"home-screen " + className}>
+    <main className={`home-screen ${className}`}>
       {showLogin && (
-        <div className="login-modal-bg">
+        <div className="login-modal-bg" role="dialog" aria-modal="true">
           <div className="login-modal">
-            <div className="login-tabs">
+            <div className="login-heading">
+              <p>{t("login_kicker")}</p>
+              <h1>{t("login_title")}</h1>
+            </div>
+            <div className="login-tabs" role="tablist">
               <button
+                type="button"
                 className={loginTab === "login" ? "active" : ""}
                 onClick={() => setLoginTab("login")}
-              >{t("login")}</button>
+              >
+                {t("login")}
+              </button>
               <button
+                type="button"
                 className={loginTab === "register" ? "active" : ""}
                 onClick={() => setLoginTab("register")}
-              >{t("register")}</button>
+              >
+                {t("register")}
+              </button>
             </div>
             <form
               onSubmit={loginTab === "login" ? handleLogin : handleRegister}
@@ -352,7 +270,7 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
                 value={email}
                 required
                 placeholder={t("email")}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 className="login-input"
               />
               <input
@@ -360,7 +278,7 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
                 value={password}
                 required
                 placeholder={t("password")}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 className="login-input"
               />
               <button type="submit" className="login-btn">
@@ -368,137 +286,186 @@ export const HomeScreen = ({ onNavigate, className, forceLogin = false, ...props
               </button>
               {loginError && <div className="login-error">{loginError}</div>}
             </form>
-            {/* 구글 로그인 버튼 추가 */}
-            <button
-              type="button"
-              className="google-login-btn"
-              onClick={handleGoogleLogin}
-            >
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google"
-                style={{ width: 18, height: 18, marginRight: 8, verticalAlign: "middle" }}
-              />
+            <button type="button" className="google-login-btn" onClick={handleGoogleLogin}>
+              <span className="google-mark">G</span>
               {t("google_login")}
             </button>
-            <button className="login-cancel" onClick={() => setShowLogin(false)}>
+            <button className="login-cancel" type="button" onClick={() => setShowLogin(false)}>
               {t("close")}
             </button>
           </div>
         </div>
       )}
+
       {detailMenu && (
         <div className="meal-detail-bg" onClick={() => setDetailMenu(null)}>
-          <div className="meal-detail" onClick={e => e.stopPropagation()}>
-            <div className="meal-detail-title">{detailMenu.name}</div>
+          <div className="meal-detail" onClick={(event) => event.stopPropagation()}>
+            <div className="meal-detail-header">
+              <span className={`meal-status-dot ${detailMenu.assessment.category}`} />
+              <div>
+                <p>{t(detailMenu.assessment.labelKey)}</p>
+                <h2>{detailMenu.name}</h2>
+              </div>
+            </div>
             <div className="meal-detail-ingredients">
-              {detailMenu.ingredients.map((x, i) => (
-                <span key={x} className={allergies.includes(x) ? 'highlight-allergy' : ''}>
-                  {t(x)}{i < detailMenu.ingredients.length - 1 ? ', ' : ''}
+              {detailMenu.ingredients.length ? detailMenu.ingredients.map((ingredient) => (
+                <span
+                  key={ingredient}
+                  className={preferences.allergies.includes(ingredient) ? "highlight-allergy" : ""}
+                >
+                  {t(ingredient)}
                 </span>
-              ))}
+              )) : (
+                <span>{t("no_allergy_codes")}</span>
+              )}
             </div>
             <button className="meal-detail-close" onClick={() => setDetailMenu(null)}>
-              {t('close')}
+              {t("close")}
             </button>
           </div>
         </div>
       )}
 
-      {/* 상단 header */}
-      <div className="header">
-        <div className="header-top">
-          <div className="user-info">
-            {user ? (
-              <>
-                {/* [수정] 버튼이 이메일 주소보다 앞에 오도록 순서 변경 */}
-                <button onClick={handleLogout} className="header-logout">
-                  {t("logout")}
-                </button>
-                <span className="user-email">{user.email}</span>
-              </>
-            ) : (
-              <button onClick={() => setShowLogin(true)} className="header-login">
-                {t("login")}/{t("register")}
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="school-info">
-          <img className="school" src="school0.svg" alt="school icon" /> {/* Added alt text */}
-          <div className="school-name">{schoolName}</div>
-        </div>
-      </div>
-
-      {/* 급식 정보 */}
-      <div className="content-container">
-        <div className="content">
-          <div className="meal-title">
-            <img className="utensils" src="utensils0.svg" alt="utensils icon" /> {/* Added alt text */}
-            <div className="div2 meal-date-row">
-              <span className="meal-date">{getDateDisplay(selectedDate)}</span>
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
-                customInput={
-                  <button className="date-select-btn">{t("change")}</button>
-                }
-                calendarClassName="meal-datepicker"
-                popperPlacement="bottom"
-                minDate={new Date(2020, 1, 1)}
-                maxDate={new Date(2099, 12, 31)}
-                showPopperArrow={false}
-                locale={i18n.language}
-              />
-
+      <section className="home-hero">
+        <div className="hero-topbar">
+          <div className="school-lockup">
+            <div className={`school-logo-mark ${schoolReady ? "" : "empty"}`} aria-hidden="true">
+              {schoolReady ? getSchoolInitials(school.schoolName) : "학"}
+            </div>
+            <div>
+              <p>{schoolReady ? [school.region, school.kind].filter(Boolean).join(" · ") : t("school_not_selected")}</p>
+              <h1>{schoolReady ? school.schoolName : t("select_school_first")}</h1>
             </div>
           </div>
-          <div className="meal-items">
-            {loading ? (
-              <div>{t("loading")}</div>
-            ) : meals.length === 0 ? (
-              <div>{t("no_meal_data")}</div>
-            ) : (
-              meals.map((menu, idx) => {
-                const hasAllergy = menu.ingredients.some((i) => allergies.includes(i));
-                const religionBan = violatesReligion(menu.name, religions);
-                const dietBan = violatesDiet(menu.name, menu.ingredients, dietType);
-                let className = "simple-meal-item";
-                let icon = "✅";
-                let label = t("can_eat");
-                if (dietBan) {
-                  className += " exclude";
-                  icon = "❌";
-                  label = t("diet_violation");
-                } else if (religionBan) {
-                  className += " exclude";
-                  icon = "❌";
-                  label = t("religion_violation");
-                } else if (hasAllergy) {
-                  className += " warning";
-                  icon = "⚠️";
-                  label = t("allergy_warning");
-                }
-                return (
-                  <div
-                    key={idx}
-                    className={className}
-                    onClick={() => setDetailMenu(menu)}
-                  >
-                    <span className="meal-name">{icon} {menu.name}</span>
-                    <div style={{ fontSize: 13, marginTop: 4 }}>
-                      {label}
-                    </div>
-                  </div>
-                );
-              })
-            )}
+          {user ? (
+            <button className="ghost-button" onClick={handleLogout}>
+              {t("logout")}
+            </button>
+          ) : (
+            <button className="primary-small-button" onClick={() => setShowLogin(true)}>
+              {t("login")}
+            </button>
+          )}
+        </div>
+
+        <div className="date-panel">
+          <div>
+            <span>{t("today_meal")}</span>
+            <strong>{getDateDisplay(selectedDate, i18n.language)}</strong>
+          </div>
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => date && setSelectedDate(date)}
+            dateFormat={i18n.language === "en" ? "yyyy-MM-dd" : "yyyy년 MM월 dd일"}
+            customInput={
+              <button className="date-select-btn" type="button">
+                {t("change")}
+              </button>
+            }
+            calendarClassName="meal-datepicker"
+            popperPlacement="bottom-end"
+            minDate={new Date(2020, 0, 1)}
+            maxDate={new Date(2099, 11, 31)}
+            showPopperArrow={false}
+          />
+        </div>
+      </section>
+
+      <section className="meal-shell">
+        <div className="meal-shell-header">
+          <div>
+            <p>{t("meal_available")}</p>
+            <h2>{schoolReady ? (availableMealNames || t("no_meal_data")) : t("no_school_selected")}</h2>
+          </div>
+          {activeMeal?.calories && <span className="calorie-pill">{activeMeal.calories}</span>}
+        </div>
+
+        {schoolReady && mealGroups.length > 0 && (
+          <div className="meal-segment" role="tablist" aria-label={t("meal")}>
+            {mealGroups.map((meal) => {
+            const summary = summarizeDishes(meal.dishes, preferences);
+            return (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedMealCode === meal.code}
+                key={meal.code}
+                className={selectedMealCode === meal.code ? "active" : ""}
+                onClick={() => setSelectedMealCode(meal.code)}
+              >
+                <span>{meal.name}</span>
+                <strong>{summary.safe}/{meal.dishes.length}</strong>
+              </button>
+            );
+            })}
+          </div>
+        )}
+
+        <div className="summary-strip">
+          <div>
+            <span className="summary-dot safe" />
+            <p>{t("possible")}</p>
+            <strong>{activeSummary.safe}</strong>
+          </div>
+          <div>
+            <span className="summary-dot caution" />
+            <p>{t("caution")}</p>
+            <strong>{activeSummary.caution}</strong>
+          </div>
+          <div>
+            <span className="summary-dot excluded" />
+            <p>{t("excluded")}</p>
+            <strong>{activeSummary.excluded}</strong>
           </div>
         </div>
-      </div>
 
-    </div>
+        <div className="meal-items">
+          {!schoolReady ? (
+            <div className="empty-state action-state">
+              <strong>{t("school_setup_needed")}</strong>
+              <span>{user ? t("school_setup_hint") : t("login_to_select_school")}</span>
+              <button type="button" onClick={() => user ? navigate("/settings") : setShowLogin(true)}>
+                {user ? t("go_settings") : t("login")}
+              </button>
+            </div>
+          ) : loading ? (
+            <div className="empty-state">{t("loading")}</div>
+          ) : mealError ? (
+            <div className="empty-state">{mealError}</div>
+          ) : !activeMeal?.dishes?.length ? (
+            <div className="empty-state">{t("no_meal_data")}</div>
+          ) : (
+            activeMeal.dishes.map((menu) => {
+              const assessment = assessDish(menu, preferences);
+              return (
+                <button
+                  type="button"
+                  key={`${activeMeal.code}-${menu.name}`}
+                  className={`simple-meal-item ${assessment.category}`}
+                  onClick={() => setDetailMenu({ ...menu, assessment })}
+                >
+                  <span className={`meal-status-dot ${assessment.category}`} aria-hidden="true" />
+                  <span className="meal-item-copy">
+                    <strong>{menu.name}</strong>
+                    <small>
+                      {t(assessment.labelKey)}
+                      {assessment.hits.length ? ` · ${assessment.hits.map((hit) => t(hit)).join(", ")}` : ""}
+                    </small>
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {activeMeal?.nutrition && (
+          <details className="nutrition-panel">
+            <summary>{t("nutrition_info")}</summary>
+            <p>{activeMeal.nutrition.replaceAll("<br/>", " · ")}</p>
+          </details>
+        )}
+      </section>
+    </main>
   );
 };
 

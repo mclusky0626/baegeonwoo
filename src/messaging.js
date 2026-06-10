@@ -1,43 +1,50 @@
-// firebase-messaging.js
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { app } from "./firebase"; // firebase.js에서 export한 'app'
+import { app, isFirebaseConfigured } from "./firebase";
 
-const messaging = getMessaging(app);
-
+const messaging = isFirebaseConfigured ? getMessaging(app) : null;
 let currentToken = null;
 
-// 알림 권한 요청
 export const requestNotificationPermission = async () => {
+  if (!("Notification" in window)) {
+    throw new Error("Notifications are not supported in this browser.");
+  }
+
+  if (Notification.permission === "granted") return;
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
     throw new Error("Notification permission not granted");
   }
 };
 
-// FCM 토큰 가져오기
 export const retrieveToken = async (registration) => {
+  if (!messaging) return null;
+
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+  if (!vapidKey) return null;
+
   currentToken = await getToken(messaging, {
-    vapidKey: "973757441582", // 여기에 VAPID 키 입력
-    serviceWorkerRegistration: registration,
+    vapidKey,
+    serviceWorkerRegistration: registration
   });
-  console.log("FCM token", currentToken);
+
   return currentToken;
 };
 
-// 메시지 수신시 콜백 처리
 export const subscribeToMessages = (callback) => {
-  onMessage(messaging, callback);
+  if (!messaging) return () => {};
+  return onMessage(messaging, callback);
 };
 
 export const getCurrentToken = () => currentToken;
 
-// 로컬 푸시 알림 표시
 export const showLocalNotification = (title, options = {}) => {
-  const reg = window.swRegistration;
-  if (reg && typeof reg.showNotification === "function") {
-    reg.showNotification(title, options);
-  } else if (Notification.permission === "granted") {
-    new Notification(title, options);
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+  const registration = window.swRegistration;
+  if (registration && typeof registration.showNotification === "function") {
+    registration.showNotification(title, options);
+    return;
   }
+
+  new Notification(title, options);
 };
-//작동안함 ㅈ박음

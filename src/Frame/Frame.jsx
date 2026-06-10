@@ -17,13 +17,7 @@ import lang from "../imgs/lang.png";
 import bell from "../imgs/bell.png";
 import check from "../imgs/checkmate.svg";
 import 'i18next'
-
-const allergyMap = {
-  1: "난류", 2: "우유", 3: "메밀", 4: "땅콩", 5: "대두", 6: "밀",
-  7: "고등어", 8: "게", 9: "새우", 10: "돼지고기", 11: "복숭아",
-  12: "토마토", 13: "아황산류", 14: "호두", 15: "닭고기", 16: "쇠고기",
-  17: "오징어", 18: "조개류"
-};
+import { allergyMap, buildMealUrl } from "../utils/mealUtils";
 
 const getCurrentWeekRange = () => {
   const today = new Date();
@@ -75,13 +69,19 @@ export const Frame = ({ className = "" }) => {
       setStatsLoading(true);
       try {
         const { from, to } = getCurrentWeekRange();
-        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=a27ba9b1a9144411a928c9358597817e&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${eduCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_FROM_YMD=${from}&MLSV_TO_YMD=${to}`;
+        const url = buildMealUrl({
+          eduCode,
+          schoolCode,
+          from,
+          to,
+          size: 100
+        });
         const res = await fetch(url);
         const data = await res.json();
         const rows = data?.mealServiceDietInfo?.[1]?.row || [];
         let count = { good: 0, caution: 0, excluded: 0 };
         for (const meal of rows) {
-          const dishes = meal.DDISH_NM.split("<br/>");
+          const dishes = String(meal.DDISH_NM || "").split("<br/>");
           for (const dish of dishes) {
             const match = dish.match(/\(([^)]+)\)/);
             const codes = match ? match[1].split(".").map(Number) : [];
@@ -233,7 +233,7 @@ export const Frame = ({ className = "" }) => {
               </>
             )}
           </div>
-          <button className="detail-btn" onClick={() => navigate("/Week")}>{t("see_details")}</button>
+          <button className="detail-btn" onClick={() => navigate("/week")}>{t("see_details")}</button>
         </section>
 
         {/* 언어 설정 */}

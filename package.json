@@ -33,9 +33,9 @@
   },
   "scripts": {
     "vercel-build": "npm ci && npm run build",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "node node_modules/vite/bin/vite.js",
+    "build": "node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview"
   },
   "browserslist": [
     ">0.2%",

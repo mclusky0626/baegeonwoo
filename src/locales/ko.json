@@ -1,5 +1,4 @@
 {
-    
   "my_meal_stats": "나의 급식 통계",
   "see_details": "자세히 보기",
   "language_setting": "언어 설정",
@@ -24,13 +23,10 @@
   "no_name": "이름없음",
   "no_school": "학교없음",
   "no_grade": "학년없음",
-
-
   "profile": "내 정보",
   "settings": "설정",
   "edit": "수정",
   "save": "저장",
-
   "login_required": "로그인이 필요합니다",
   "meal_filter": "급식 필터 기준",
   "religion": "종교",
@@ -39,7 +35,7 @@
   "login": "로그인",
   "register": "회원가입",
   "logout": "로그아웃",
-  "login_success": "앱에 로그인 되었습니다!",
+  "login_success": "앱에 로그인 되었습니다.",
   "login_failed": "로그인 실패! 이메일/비밀번호를 확인하세요.",
   "register_failed": "회원가입 실패: ",
   "google_login": "구글로 로그인",
@@ -47,6 +43,7 @@
   "select_school": "학교를 선택하세요",
   "loading": "로딩 중...",
   "no_meal_data": "급식 데이터가 없습니다.",
+  "meal_load_failed": "급식 데이터를 불러오지 못했습니다.",
   "meal": "급식",
   "allergy_warning": "알레르기 주의",
   "allergy_details": "알레르기 정보",
@@ -57,9 +54,15 @@
   "date": "날짜",
   "school": "학교",
   "meal_title": "급식",
+  "login_kicker": "맞춤 급식 알림",
+  "login_title": "계정으로 시작하기",
+  "today_meal": "오늘의 급식",
+  "meal_available": "제공 급식",
+  "no_allergy_codes": "표시된 알레르기 코드가 없습니다.",
+  "nutrition_info": "영양 정보",
   "email": "이메일",
   "password": "비밀번호",
-  "weekly_report": "주간 급식 리포트",
+  "weekly_report": "주간 리포트",
   "select_week": "조회할 주 선택: ",
   "mon_fri_meal": "(월요일~금요일 급식)",
   "meal_summary": "급식 요약",
@@ -77,19 +80,15 @@
   "wed": "수요일",
   "thu": "목요일",
   "fri": "금요일",
-
   "settings_title": "급식 맞춤 설정",
-
   "school_input_placeholder": "학교명을 입력하세요",
   "religion_select": "종교 선택",
   "religion_multi": "(중복 선택 가능)",
   "diet_type": "식생활 유형",
   "allergy_check": "알레르기 체크",
   "allergy_input_placeholder": "예: 우유, 밀, 땅콩 등",
-
-  "save_success": "✅ 저장 완료!",
+  "save_success": "저장 완료",
   "save_failed": "저장 실패: ",
-
   "school_suggestions": "추천 학교",
   "selected_allergies": "선택된 알레르기",
   "remove": "삭제",
@@ -103,8 +102,8 @@
   "lacto_ovo": "락토오보",
   "pesco": "페스코",
   "other": "기타",
-  
-
+  "settings_kicker": "프로필 기준",
+  "allergy_standard": "NEIS 알레르기 코드 19종",
   "day_of_week": "요일",
   "count_unit": "개",
   "난류": "난류",
@@ -125,7 +124,16 @@
   "쇠고기": "쇠고기",
   "오징어": "오징어",
   "조개류": "조개류",
-
+  "잣": "잣",
+  "이슬람": "이슬람",
+  "힌두교": "힌두교",
+  "불교": "불교",
+  "기독교": "기독교",
+  "없음": "없음",
+  "일반식": "일반식",
+  "비건": "비건",
+  "락토오보": "락토오보",
+  "페스코": "페스코",
   "feedback_title": "급식 피드백",
   "nutritionist_dashboard_title": "영양사 피드백 대시보드",
   "feature_in_development": "기능 개발 중입니다.",
@@ -133,7 +141,6 @@
   "submitting": "제출 중...",
   "submit_success_message": "피드백이 성공적으로 제출되었습니다!",
   "submit_error_message": "오류가 발생했습니다. 다시 시도해주세요.",
-  "weekly_report": "주간 리포트",
   "best_menu": "최고의 메뉴",
   "worst_menu": "최악의 메뉴",
   "no_weekly_data": "주간 데이터가 없습니다.",
@@ -146,5 +153,15 @@
   "comment_placeholder": "자세한 의견을 남겨주세요...",
   "너무 짜요": "너무 짜요",
   "너무 달아요": "너무 달아요",
-  "맛있어요": "맛있어요"
+  "맛있어요": "맛있어요",
+  "school_not_selected": "학교 미설정",
+  "select_school_first": "학교를 먼저 선택하세요",
+  "no_school_selected": "선택된 학교가 없습니다",
+  "school_setup_needed": "학교 설정이 필요합니다",
+  "school_setup_hint": "설정에서 학교를 선택하면 오늘의 급식과 주간 분석을 확인할 수 있습니다.",
+  "login_to_select_school": "로그인한 뒤 학교와 알레르기 기준을 저장할 수 있습니다.",
+  "go_settings": "설정으로 이동",
+  "selected_day_detail": "선택한 요일 상세",
+  "risk_summary": "주의 항목 요약",
+  "risk_count_unit": "건 주의"
 }

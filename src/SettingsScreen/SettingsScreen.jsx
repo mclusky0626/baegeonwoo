@@ -1,104 +1,109 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./SettingsScreen.css";
-import { db, auth } from "../firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { Layout } from "../components/Layout";
+import { auth, db } from "../firebase";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { NEIS_ALLERGENS } from "../utils/mealUtils";
+import { EMPTY_SCHOOL, getSchoolInitials, hasSchool, resolveSchool } from "../utils/school";
 
-export const SettingsScreen = ({ onNavigate }) => {
-  const { t, i18n } = useTranslation();
+const RELIGIONS = ["이슬람", "힌두교", "불교", "기독교", "없음"];
+const DIET_TYPES = ["일반식", "비건", "락토오보", "페스코"];
 
-  // 학교 관련
+export const SettingsScreen = () => {
+  const { t } = useTranslation();
   const [schoolName, setSchoolName] = useState("");
+  const [schoolMeta, setSchoolMeta] = useState(EMPTY_SCHOOL);
   const [schoolList, setSchoolList] = useState([]);
-  const [eduCode, setEduCode] = useState("");
-  const [schoolCode, setSchoolCode] = useState("");
-  const [schoolSelected, setSchoolSelected] = useState(false);
-
-  // 기타 설정
+  const [schoolSelected, setSchoolSelected] = useState(true);
   const [religion, setReligion] = useState([]);
-  const [dietType, setDietType] = useState("");
+  const [dietType, setDietType] = useState("일반식");
   const [allergies, setAllergies] = useState([]);
   const [saveMsg, setSaveMsg] = useState("");
   const inputRef = useRef(null);
 
-  // 번역 가능한 옵션들
-  const religions = [
-    "이슬람", "힌두교", "불교", "기독교", "없음"
-  ];
-  const dietTypes = [
-    "일반식", "비건", "락토오보", "페스코"
-  ];
-  const allergyList = [
-    "난류", "우유", "메밀", "땅콩", "대두", "밀", "고등어", "게", "새우",
-    "돼지고기", "복숭아", "토마토", "아황산류", "호두", "닭고기", "쇠고기", "오징어", "조개류"
-  ];
-
-  // 학교명 입력시 네이스 학교정보 검색 API 호출 (2글자 이상일 때만)
-  useEffect(() => {
-    const fetchSchools = async () => {
-      if (schoolName.length < 2 || schoolSelected) { setSchoolList([]); return; }
-      const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=7730a6275172463a8ab608807131a22c&Type=json&SCHUL_NM=${encodeURIComponent(schoolName)}`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const rows = data?.schoolInfo?.[1]?.row || [];
-        setSchoolList(rows);
-      } catch {
-        setSchoolList([]);
-      }
-    };
-    fetchSchools();
-  }, [schoolName, schoolSelected]);
-
-  // 학교 선택 시
-  const handleSelectSchool = (school) => {
-    setSchoolName(school.SCHUL_NM);
-    setEduCode(school.ATPT_OFCDC_SC_CODE);
-    setSchoolCode(school.SD_SCHUL_CODE);
-    setSchoolList([]);
-    setSchoolSelected(true);
-    if (inputRef.current) inputRef.current.blur();
-  };
-
-  // Firestore에서 사용자 정보 불러오기
   useEffect(() => {
     const fetchData = async () => {
       const user = auth.currentUser;
       if (!user) return;
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const d = snap.data();
-        setSchoolName(d.schoolName || "");
-        setEduCode(d.eduCode || "");
-        setSchoolCode(d.schoolCode || "");
-        setReligion(d.religion || []);
-        setDietType(d.dietType || "");
-        setAllergies(d.allergies || []);
-      }
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const data = snap.exists() ? snap.data() : {};
+      const resolvedSchool = resolveSchool(data);
+
+      setSchoolName(resolvedSchool.schoolName);
+      setSchoolMeta(resolvedSchool);
+      setReligion(data.religion || []);
+      setDietType(data.dietType || "일반식");
+      setAllergies(data.allergies || []);
+      setSchoolSelected(Boolean(data.schoolCode));
     };
+
     fetchData();
   }, []);
 
-  // 종교 변경
-  const handleReligionChange = (r) => {
-    setReligion((prev) =>
-      prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]
-    );
+  useEffect(() => {
+    const fetchSchools = async () => {
+      if (schoolName.trim().length < 2 || schoolSelected) {
+        setSchoolList([]);
+        return;
+      }
+
+      const params = new URLSearchParams({
+        Type: "json",
+        SCHUL_NM: schoolName.trim()
+      });
+      if (import.meta.env.VITE_NEIS_API_KEY) {
+        params.set("KEY", import.meta.env.VITE_NEIS_API_KEY);
+      }
+
+      try {
+        const res = await fetch(`https://open.neis.go.kr/hub/schoolInfo?${params.toString()}`);
+        const data = await res.json();
+        setSchoolList(data?.schoolInfo?.[1]?.row || []);
+      } catch {
+        setSchoolList([]);
+      }
+    };
+
+    fetchSchools();
+  }, [schoolName, schoolSelected]);
+
+  const handleSelectSchool = (school) => {
+    const nextSchool = {
+      schoolName: school.SCHUL_NM,
+      eduCode: school.ATPT_OFCDC_SC_CODE,
+      schoolCode: school.SD_SCHUL_CODE,
+      region: school.LCTN_SC_NM,
+      kind: school.SCHUL_KND_SC_NM,
+      address: school.ORG_RDNMA,
+      homepage: school.HMPG_ADRES
+    };
+
+    setSchoolName(nextSchool.schoolName);
+    setSchoolMeta(nextSchool);
+    setSchoolList([]);
+    setSchoolSelected(true);
+    inputRef.current?.blur();
   };
 
-  // 식생활유형 변경
-  const handleDietChange = (d) => setDietType(d);
+  const handleReligionChange = (value) => {
+    setReligion((prev) => {
+      if (value === "없음") return prev.includes("없음") ? [] : ["없음"];
+      const withoutNone = prev.filter((item) => item !== "없음");
+      return withoutNone.includes(value)
+        ? withoutNone.filter((item) => item !== value)
+        : [...withoutNone, value];
+    });
+  };
 
-  // 알러지 체크박스 변경
-  const handleToggleAllergy = (val) => {
+  const handleToggleAllergy = (value) => {
     setAllergies((prev) =>
-      prev.includes(val) ? prev.filter((a) => a !== val) : [...prev, val]
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
     );
   };
 
-  // 저장
   const handleSave = async () => {
     try {
       const user = auth.currentUser;
@@ -106,123 +111,140 @@ export const SettingsScreen = ({ onNavigate }) => {
         setSaveMsg(t("login_required"));
         return;
       }
+
       await setDoc(doc(db, "users", user.uid), {
-        schoolName, eduCode, schoolCode,
+        schoolName: schoolMeta.schoolName || schoolName,
+        eduCode: schoolMeta.eduCode,
+        schoolCode: schoolMeta.schoolCode,
+        schoolRegion: schoolMeta.region,
+        schoolKind: schoolMeta.kind,
+        schoolAddress: schoolMeta.address,
+        schoolHomepage: schoolMeta.homepage,
         religion,
         dietType,
         allergies,
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       }, { merge: true });
+
       setSaveMsg(t("save_success"));
-      setTimeout(() => setSaveMsg(""), 2000);
-    } catch (e) {
-      setSaveMsg(t("save_failed") + e.message);
+      setTimeout(() => setSaveMsg(""), 2200);
+    } catch (error) {
+      setSaveMsg(`${t("save_failed")}${error.message}`);
     }
   };
 
   return (
-    <div className="settings-screen">
-      <div className="header">
-        <div className="div">{t("settings_title")}</div>
-      </div>
-      <div className="content">
-        {/* 학교 검색/선택 */}
-        <div className="school-section">
-          <div className="div2">{t("select_school")}</div>
-          <input
-            ref={inputRef}
-            className="school-input-box"
-            type="text"
-            placeholder={t("school_input_placeholder")}
-            value={schoolName}
-            onChange={e => { setSchoolName(e.target.value); setSchoolSelected(false); }}
-            autoComplete="off"
-          />
-          {/* 추천학교 목록 */}
-          {schoolList.length > 0 &&
-            <ul className="suggestion-list">
-              {schoolList.map((s, idx) => (
-                <li key={idx} className="suggestion-item"
-                  onClick={() => handleSelectSchool(s)}
-                  style={{ cursor: "pointer", padding: "5px 8px", borderBottom: "1px solid #eee" }}
-                >
-                  {s.SCHUL_NM} ({s.LCTN_SC_NM}) {s.SCHUL_KND_SC_NM}
-                </li>
-              ))}
-            </ul>
-          }
-        </div>
+    <main className="settings-screen">
+      <header className="settings-header">
+        <p>{t("settings_kicker")}</p>
+        <h1>{t("settings_title")}</h1>
+      </header>
 
-        {/* 종교 선택 */}
-        <div className="religion-section">
-          <div className="div4">
-            {t("religion_select")} <span style={{ fontSize: 13 }}>{t("religion_multi")}</span>
+      <section className="settings-section school-section">
+        <div className="section-title-row">
+          <div className={`school-logo-mark ${hasSchool(schoolMeta) ? "" : "empty"}`}>
+            {hasSchool(schoolMeta) ? getSchoolInitials(schoolMeta.schoolName || schoolName) : "학"}
           </div>
-          <div className="religion-options">
-            {religions.map((r) => (
-              <label
-                key={r}
-                className={"religion-option " + (religion.includes(r) ? "selected" : "")}
-              >
-                <input
-                  type="checkbox"
-                  checked={religion.includes(r)}
-                  onChange={() => handleReligionChange(r)}
-                  style={{ display: "none" }}
-                />
-                {t(r)}
-              </label>
-            ))}
+          <div>
+            <p>{t("select_school")}</p>
+            <h2>{schoolMeta.schoolName || schoolName || t("select_school_first")}</h2>
           </div>
         </div>
+        <input
+          ref={inputRef}
+          className="school-input-box"
+          type="text"
+          placeholder={t("school_input_placeholder")}
+          value={schoolName}
+          onChange={(event) => {
+            setSchoolName(event.target.value);
+            setSchoolSelected(false);
+          }}
+          autoComplete="off"
+        />
+        {schoolList.length > 0 && (
+          <ul className="suggestion-list">
+            {schoolList.map((school) => (
+              <li key={`${school.ATPT_OFCDC_SC_CODE}-${school.SD_SCHUL_CODE}`}>
+                <button type="button" onClick={() => handleSelectSchool(school)}>
+                  <strong>{school.SCHUL_NM}</strong>
+                  <span>{school.LCTN_SC_NM} · {school.SCHUL_KND_SC_NM}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-        {/* 식생활유형 */}
-        <div className="diet-section">
-          <div className="div2">{t("diet_type")}</div>
-          <div className="diet-options">
-            {dietTypes.map((d) => (
-              <label
-                key={d}
-                className={"diet-option " + (dietType === d ? "selected" : "")}
-              >
-                <input
-                  type="radio"
-                  name="dietType"
-                  checked={dietType === d}
-                  onChange={() => handleDietChange(d)}
-                  style={{ display: "none" }}
-                />
-                {t(d)}
-              </label>
-            ))}
-          </div>
+      <section className="settings-section">
+        <div className="settings-section-heading">
+          <p>{t("religion_multi")}</p>
+          <h2>{t("religion_select")}</h2>
         </div>
+        <div className="option-grid compact">
+          {RELIGIONS.map((item) => (
+            <label key={item} className={religion.includes(item) ? "option-chip selected" : "option-chip"}>
+              <input
+                type="checkbox"
+                checked={religion.includes(item)}
+                onChange={() => handleReligionChange(item)}
+              />
+              {t(item)}
+            </label>
+          ))}
+        </div>
+      </section>
 
-        {/* 알러지 */}
-        <div className="allergy-section">
-          <div className="div2">{t("allergy_check")}</div>
-          <div className="allergy-options">
-            {allergyList.map((a) => (
-              <label key={a} className="allergy-option">
-                <input
-                  type="checkbox"
-                  checked={allergies.includes(a)}
-                  onChange={() => handleToggleAllergy(a)}
-                />
-                {t(a)}
-              </label>
-            ))}
-          </div>
+      <section className="settings-section">
+        <div className="settings-section-heading">
+          <p>{t("meal_filter")}</p>
+          <h2>{t("diet_type")}</h2>
         </div>
-      </div>
+        <div className="option-grid compact">
+          {DIET_TYPES.map((item) => (
+            <label key={item} className={dietType === item ? "option-chip selected" : "option-chip"}>
+              <input
+                type="radio"
+                name="dietType"
+                checked={dietType === item}
+                onChange={() => setDietType(item)}
+              />
+              {t(item)}
+            </label>
+          ))}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-section-heading">
+          <p>{t("allergy_standard")}</p>
+          <h2>{t("allergy_check")}</h2>
+        </div>
+        <div className="option-grid allergens">
+          {NEIS_ALLERGENS.map((item) => (
+            <label
+              key={item.code}
+              className={allergies.includes(item.value) ? "option-chip selected" : "option-chip"}
+            >
+              <input
+                type="checkbox"
+                checked={allergies.includes(item.value)}
+                onChange={() => handleToggleAllergy(item.value)}
+              />
+              <span>{item.code}</span>
+              {t(item.value)}
+            </label>
+          ))}
+        </div>
+      </section>
 
       <div className="bottom-section">
         <button className="save-button" onClick={handleSave}>
           {t("save")}
         </button>
-        {saveMsg && <div style={{ marginTop: 8, color: "#28a745" }}>{saveMsg}</div>}
+        {saveMsg && <div className="save-message">{saveMsg}</div>}
       </div>
-    </div>
+    </main>
   );
 };
 
