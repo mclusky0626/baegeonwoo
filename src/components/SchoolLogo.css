@@ -1,0 +1,33 @@
+.school-logo {
+  flex: 0 0 auto;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #111111;
+  color: #ffffff;
+  font-weight: 780;
+}
+
+.school-logo.md {
+  width: 46px;
+  height: 46px;
+  font-size: 16px;
+}
+
+.school-logo.lg {
+  width: 64px;
+  height: 64px;
+  font-size: 20px;
+}
+
+.school-logo.empty {
+  background: #e8e9ed;
+  color: #6f737a;
+}
+
+.school-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

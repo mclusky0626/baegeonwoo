@@ -4,7 +4,8 @@ import "./SettingsScreen.css";
 import { auth, db } from "../firebase";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { NEIS_ALLERGENS } from "../utils/mealUtils";
-import { EMPTY_SCHOOL, getSchoolInitials, hasSchool, resolveSchool } from "../utils/school";
+import { EMPTY_SCHOOL, hasSchool, resolveSchool } from "../utils/school";
+import { SchoolLogo } from "../components/SchoolLogo";
 
 const RELIGIONS = ["이슬람", "힌두교", "불교", "기독교", "없음"];
 const DIET_TYPES = ["일반식", "비건", "락토오보", "페스코"];
@@ -142,9 +143,7 @@ export const SettingsScreen = () => {
 
       <section className="settings-section school-section">
         <div className="section-title-row">
-          <div className={`school-logo-mark ${hasSchool(schoolMeta) ? "" : "empty"}`}>
-            {hasSchool(schoolMeta) ? getSchoolInitials(schoolMeta.schoolName || schoolName) : "학"}
-          </div>
+          <SchoolLogo school={schoolMeta} />
           <div>
             <p>{t("select_school")}</p>
             <h2>{schoolMeta.schoolName || schoolName || t("select_school_first")}</h2>

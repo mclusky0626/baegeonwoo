@@ -163,5 +163,16 @@
   "go_settings": "설정으로 이동",
   "selected_day_detail": "선택한 요일 상세",
   "risk_summary": "주의 항목 요약",
-  "risk_count_unit": "건 주의"
+  "risk_count_unit": "건 주의",
+  "onboarding_kicker": "다문화 급식 알리미",
+  "onboarding_title": "오늘 먹을 수 있는 메뉴를 먼저 확인하세요.",
+  "onboarding_point_meal": "학교 급식 확인",
+  "onboarding_point_meal_desc": "학교가 제공하는 끼니만 탭으로 정리합니다.",
+  "onboarding_point_filter": "개인 기준 판정",
+  "onboarding_point_filter_desc": "알레르기, 종교, 식생활 기준을 한 화면에서 반영합니다.",
+  "onboarding_point_report": "주간 요약",
+  "onboarding_point_report_desc": "요일별 위험도를 그래프로 간단히 확인합니다.",
+  "continue_without_login": "둘러보기",
+  "reset_password": "재설정",
+  "password_reset_sent": "비밀번호 재설정 메일을 보냈습니다."
 }

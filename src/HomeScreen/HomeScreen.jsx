@@ -14,6 +14,7 @@ import {
 } from "firebase/auth";
 import { arrayUnion, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
+import { BarChart3, ShieldCheck, Utensils } from "lucide-react";
 import {
   assessDish,
   buildMealUrl,
@@ -21,7 +22,8 @@ import {
   parseMealRows,
   summarizeDishes
 } from "../utils/mealUtils";
-import { EMPTY_SCHOOL, getSchoolInitials, hasSchool, resolveSchool } from "../utils/school";
+import { EMPTY_SCHOOL, hasSchool, resolveSchool } from "../utils/school";
+import { SchoolLogo } from "../components/SchoolLogo";
 import {
   getCurrentToken,
   requestNotificationPermission,
@@ -34,6 +36,8 @@ const DEFAULT_PREFERENCES = {
   religions: [],
   dietType: ""
 };
+
+const ONBOARDING_KEY = "dagub:onboarding:v3";
 
 export const HomeScreen = ({ className = "", forceLogin = false }) => {
   const { t, i18n } = useTranslation();
@@ -55,6 +59,20 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
   const [loginError, setLoginError] = useState("");
   const [showLogin, setShowLogin] = useState(forceLogin);
   const [loginTab, setLoginTab] = useState("login");
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (forceLogin || typeof window === "undefined") return false;
+    return window.localStorage.getItem(ONBOARDING_KEY) !== "seen";
+  });
+
+  const closeOnboarding = () => {
+    window.localStorage.setItem(ONBOARDING_KEY, "seen");
+    setShowOnboarding(false);
+  };
+
+  const openLoginFromOnboarding = () => {
+    closeOnboarding();
+    setShowLogin(true);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -238,6 +256,48 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
 
   return (
     <main className={`home-screen ${className}`}>
+      {showOnboarding && (
+        <section className="onboarding-screen" aria-label={t("onboarding_title")}>
+          <div className="onboarding-panel">
+            <div className="onboarding-brand-row">
+              <div className="onboarding-mark">
+                <Utensils size={28} strokeWidth={1.8} />
+              </div>
+              <div>
+                <p>{t("onboarding_kicker")}</p>
+                <strong>Dagub</strong>
+              </div>
+            </div>
+            <h1>{t("onboarding_title")}</h1>
+            <div className="onboarding-points">
+              <div>
+                <Utensils size={18} strokeWidth={1.8} />
+                <strong>{t("onboarding_point_meal")}</strong>
+                <span>{t("onboarding_point_meal_desc")}</span>
+              </div>
+              <div>
+                <ShieldCheck size={18} strokeWidth={1.8} />
+                <strong>{t("onboarding_point_filter")}</strong>
+                <span>{t("onboarding_point_filter_desc")}</span>
+              </div>
+              <div>
+                <BarChart3 size={18} strokeWidth={1.8} />
+                <strong>{t("onboarding_point_report")}</strong>
+                <span>{t("onboarding_point_report_desc")}</span>
+              </div>
+            </div>
+            <div className="onboarding-actions">
+              <button type="button" className="onboarding-primary" onClick={openLoginFromOnboarding}>
+                {t("login")}
+              </button>
+              <button type="button" className="onboarding-secondary" onClick={closeOnboarding}>
+                {t("continue_without_login")}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {showLogin && (
         <div className="login-modal-bg" role="dialog" aria-modal="true">
           <div className="login-modal">
@@ -287,7 +347,11 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
               {loginError && <div className="login-error">{loginError}</div>}
             </form>
             <button type="button" className="google-login-btn" onClick={handleGoogleLogin}>
-              <span className="google-mark">G</span>
+              <img
+                className="google-mark"
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt=""
+              />
               {t("google_login")}
             </button>
             <button className="login-cancel" type="button" onClick={() => setShowLogin(false)}>
@@ -329,9 +393,7 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
       <section className="home-hero">
         <div className="hero-topbar">
           <div className="school-lockup">
-            <div className={`school-logo-mark ${schoolReady ? "" : "empty"}`} aria-hidden="true">
-              {schoolReady ? getSchoolInitials(school.schoolName) : "학"}
-            </div>
+            <SchoolLogo school={school} />
             <div>
               <p>{schoolReady ? [school.region, school.kind].filter(Boolean).join(" · ") : t("school_not_selected")}</p>
               <h1>{schoolReady ? school.schoolName : t("select_school_first")}</h1>

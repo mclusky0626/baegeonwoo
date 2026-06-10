@@ -12,7 +12,7 @@
   --accent: #007aff;
   width: 100%;
   min-height: 100vh;
-  padding: 22px 18px 128px;
+  padding: 22px 18px 180px;
   background: var(--surface-alt);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Pretendard", "Noto Sans KR", sans-serif;
@@ -71,24 +71,6 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 14px;
-}
-
-.school-logo-mark {
-  flex: 0 0 46px;
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: #111111;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 780;
-}
-
-.school-logo-mark.empty {
-  background: #e8e9ed;
-  color: #6f737a;
 }
 
 .school-input-box {
@@ -202,7 +184,7 @@
 .bottom-section {
   position: fixed;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   padding: 0 18px;
   pointer-events: none;
@@ -242,7 +224,7 @@
 
 @media (max-width: 520px) {
   .settings-screen {
-    padding: 18px 14px 128px;
+    padding: 18px 14px 180px;
   }
 
   .settings-header h1 {

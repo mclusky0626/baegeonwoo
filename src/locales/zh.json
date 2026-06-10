@@ -144,5 +144,16 @@
   "go_settings": "前往设置",
   "selected_day_detail": "所选日期详情",
   "risk_summary": "风险摘要",
-  "risk_count_unit": "项注意"
+  "risk_count_unit": "项注意",
+  "onboarding_kicker": "多文化餐食提醒",
+  "onboarding_title": "先确认今天可以吃的菜单。",
+  "onboarding_point_meal": "学校餐食",
+  "onboarding_point_meal_desc": "只显示学校实际供应的餐次标签。",
+  "onboarding_point_filter": "个人规则",
+  "onboarding_point_filter_desc": "同时应用过敏、宗教和饮食类型规则。",
+  "onboarding_point_report": "每周摘要",
+  "onboarding_point_report_desc": "用图表快速查看每日风险。",
+  "continue_without_login": "先浏览",
+  "reset_password": "重设",
+  "password_reset_sent": "已发送密码重设邮件。"
 }

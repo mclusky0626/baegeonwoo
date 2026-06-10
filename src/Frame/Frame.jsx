@@ -1,23 +1,23 @@
 import "./Frame.css";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { auth, db } from "../firebase";
+import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import black from "../imgs/black.png";
-import edit from "../imgs/edit.svg";
-import knife from "../imgs/knifeandafork.svg";
-import Vector from "../imgs/Vector.png";
-import ok from "../imgs/ok.png";
-import no from "../imgs/no.png";
-import warn from "../imgs/warn.png";
-import lock from "../imgs/lock.png";
-import lang from "../imgs/lang.png";
-import bell from "../imgs/bell.png";
-import check from "../imgs/checkmate.svg";
-import 'i18next'
-import { allergyMap, buildMealUrl } from "../utils/mealUtils";
+import {
+  Bell,
+  ChevronRight,
+  Languages,
+  LogOut,
+  Pencil,
+  Settings,
+  ShieldCheck,
+  Utensils
+} from "lucide-react";
+import { auth, db } from "../firebase";
+import { assessDish, buildMealUrl, parseMealRows } from "../utils/mealUtils";
+import { EMPTY_SCHOOL, hasSchool, resolveSchool } from "../utils/school";
+import { SchoolLogo } from "../components/SchoolLogo";
 
 const getCurrentWeekRange = () => {
   const today = new Date();
@@ -26,298 +26,266 @@ const getCurrentWeekRange = () => {
   monday.setDate(today.getDate() - ((day + 6) % 7));
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
-  const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, "");
+  const fmt = (date) => date.toISOString().slice(0, 10).replace(/-/g, "");
   return { from: fmt(monday), to: fmt(friday) };
 };
 
 export const Frame = ({ className = "" }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [editMode, setEditMode] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [editingName, setEditingName] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showLangSelect, setShowLangSelect] = useState(false);
-  const [stats, setStats] = useState({ good: 0, caution: 0, excluded: 0 });
+  const [stats, setStats] = useState({ safe: 0, caution: 0, excluded: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
 
-  // 유저 데이터 로딩
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (!u) {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
         setUserData(null);
         setLoading(false);
         return;
       }
-      const ref = doc(db, "users", u.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const data = snap.data();
-        setUserData(data);
-        setNameInput(data.name || "");
-      }
+
+      const snap = await getDoc(doc(db, "users", currentUser.uid));
+      const data = snap.exists() ? snap.data() : {};
+      setUserData(data);
+      setNameInput(data.name || "");
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
+  const school = useMemo(() => resolveSchool(userData || {}), [userData]);
+  const preferences = useMemo(() => ({
+    allergies: userData?.allergies || [],
+    religions: userData?.religion || [],
+    dietType: userData?.dietType || ""
+  }), [userData]);
+
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!userData) return;
-      const { eduCode, schoolCode, allergies = [] } = userData;
-      if (!eduCode || !schoolCode) { setStatsLoading(false); return; }
+    async function fetchStats() {
+      if (!hasSchool(school)) {
+        setStats({ safe: 0, caution: 0, excluded: 0 });
+        setStatsLoading(false);
+        return;
+      }
+
       setStatsLoading(true);
       try {
         const { from, to } = getCurrentWeekRange();
-        const url = buildMealUrl({
-          eduCode,
-          schoolCode,
+        const res = await fetch(buildMealUrl({
+          eduCode: school.eduCode,
+          schoolCode: school.schoolCode,
           from,
           to,
           size: 100
-        });
-        const res = await fetch(url);
+        }));
         const data = await res.json();
-        const rows = data?.mealServiceDietInfo?.[1]?.row || [];
-        let count = { good: 0, caution: 0, excluded: 0 };
-        for (const meal of rows) {
-          const dishes = String(meal.DDISH_NM || "").split("<br/>");
-          for (const dish of dishes) {
-            const match = dish.match(/\(([^)]+)\)/);
-            const codes = match ? match[1].split(".").map(Number) : [];
-            const ingredients = codes.map((c) => allergyMap[c]).filter(Boolean);
-            if (ingredients.length && allergies.length) {
-              const overlap = ingredients.filter((i) => allergies.includes(i));
-              if (overlap.length) { count.caution++; continue; }
-            }
-            count.good++;
-          }
-        }
-        setStats(count);
-      } catch (e) {
-        console.error(e);
-        setStats({ good: 0, caution: 0, excluded: 0 });
+        const meals = parseMealRows(data?.mealServiceDietInfo?.[1]?.row || []);
+        const counts = meals
+          .flatMap((meal) => meal.dishes)
+          .reduce((acc, dish) => {
+            acc[assessDish(dish, preferences).category] += 1;
+            return acc;
+          }, { safe: 0, caution: 0, excluded: 0 });
+        setStats(counts);
+      } catch (error) {
+        console.error(error);
+        setStats({ safe: 0, caution: 0, excluded: 0 });
+      } finally {
+        setStatsLoading(false);
       }
-      setStatsLoading(false);
-    };
-    fetchStats();
-  }, [userData]);
+    }
 
-  const handleSave = async () => {
-    if (!auth.currentUser) return;
-    const uid = auth.currentUser.uid;
-    const ref = doc(db, "users", uid);
-    await updateDoc(ref, {
-      name: nameInput,
-    });
-    setUserData({ ...userData, name: nameInput });
-    setEditMode(false);
+    fetchStats();
+  }, [school, preferences]);
+
+  const saveName = async () => {
+    if (!user) return;
+    await updateDoc(doc(db, "users", user.uid), { name: nameInput });
+    setUserData((current) => ({ ...current, name: nameInput }));
+    setEditingName(false);
   };
 
-  const handleLogout = async () => {
+  const logout = async () => {
+    await signOut(auth);
+    navigate("/", { replace: true });
+  };
+
+  const requestPasswordReset = async () => {
+    if (!user?.email) return;
     try {
-      await signOut(auth);
-      alert(t("logout_success"));
-      window.location.reload();
+      await sendPasswordResetEmail(auth, user.email);
+      setPasswordMessage(t("password_reset_sent"));
     } catch (error) {
-      console.error("로그아웃 실패:", error);
-      alert(t("logout_failed"));
+      console.error(error);
+      setPasswordMessage(t("save_failed"));
     }
   };
 
-  if (loading) return <div className="frame">{t("loading")}</div>;
-  if (!userData) {
+  if (loading) return <main className="profile-redesign"><div className="profile-empty">{t("loading")}</div></main>;
+
+  if (!user) {
     return (
-      <div className="frame login-required">
-        <h2>{t("login_required")}</h2>
-        <p>{t("login_required_detail")}</p>
-        <div className="btn-group">
-          <button onClick={() => navigate("/")}>{t("go_home")}</button>
-          <button onClick={() => window.location.reload()}>{t("login_again")}</button>
-        </div>
-      </div>
+      <main className="profile-redesign">
+        <section className="profile-empty">
+          <strong>{t("login_required")}</strong>
+          <span>{t("login_required_detail")}</span>
+          <button type="button" onClick={() => navigate("/login")}>{t("login")}</button>
+        </section>
+      </main>
     );
   }
 
-  // DB 구조 기준 변수명
-  const name = userData.name || t("no_name");
-  const school = userData.schoolName || t("no_school");
-  const religion = (userData.religion && userData.religion.length > 0)
-    ? userData.religion.join(", ")
-    : t("none");
-  const allergy = (userData.allergies && userData.allergies.length > 0)
-    ? userData.allergies.join(", ")
-    : t("none");
-  const dietType = userData.dietType || t("none");
-
-  const total = stats.good + stats.caution + stats.excluded;
-  const goodPct = total ? Math.round((stats.good / total) * 100) : 0;
-  const cautionPct = total ? Math.round((stats.caution / total) * 100) : 0;
-  const excludePct = total ? Math.round((stats.excluded / total) * 100) : 0;
+  const displayName = userData?.name || user.email || t("no_name");
+  const total = stats.safe + stats.caution + stats.excluded;
+  const safeRate = total ? Math.round((stats.safe / total) * 100) : 0;
+  const allergyText = preferences.allergies.length ? preferences.allergies.join(", ") : t("none");
+  const religionText = preferences.religions.length ? preferences.religions.join(", ") : t("none");
 
   return (
-    <div className={`frame ${className}`}>
-      <header className="header">
-        <div className="title">{t("profile")}</div>
-        <button className="settings-btn" onClick={() => navigate("/settings")}>
-          <img src="settings0.svg" alt={t("settings")} />
+    <main className={`profile-redesign ${className}`}>
+      <header className="profile-header">
+        <div>
+          <p>{t("profile")}</p>
+          <h1>{displayName}</h1>
+        </div>
+        <button type="button" className="icon-button" onClick={() => navigate("/settings")} aria-label={t("settings")}>
+          <Settings size={20} />
         </button>
       </header>
 
-      <div className="body">
-        {/* 프로필 카드 */}
-        <section className="card profile-card">
-          <div className="profile-row">
-            <img className="avatar" src={black} alt={t("profile")} />
-            <div className="info">
-              <div className="row name-row">
-                {!editMode ? (
-                  <>
-                    <h3 className="name">{name}</h3>
-                    <button className="edit-btn" onClick={() => setEditMode(true)}>
-                      <img src={edit} alt={t("edit_name")} />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      className="name-input"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                    />
-                    <button className="save-btn" onClick={handleSave}>
-                      {t("save")}
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="row school-row">
-                <span className="school">{school}</span>
-              </div>
+      <section className="profile-identity-card">
+        <SchoolLogo school={school} size="lg" />
+        <div className="profile-name-block">
+          {editingName ? (
+            <div className="profile-edit-row">
+              <input value={nameInput} onChange={(event) => setNameInput(event.target.value)} placeholder={t("no_name")} />
+              <button type="button" onClick={saveName}>{t("save")}</button>
             </div>
-          </div>
-        </section>
-
-        {/* 급식 필터 기준 */}
-        <section className="card filter-card">
-          <div className="card-header">
-            <div className="row">
-              <img src={knife} alt="" />
-              <h4>{t("meal_filter")}</h4>
-            </div>
-            <button className="edit-btn" onClick={() => navigate("/settings")}>
-              {t("edit")}
+          ) : (
+            <button type="button" className="profile-name-button" onClick={() => setEditingName(true)}>
+              <span>{displayName}</span>
+              <Pencil size={15} />
             </button>
-          </div>
-          <ul className="filter-list">
-            <li>{t("religion")}: {religion}</li>
-            <li>{t("dietType")}: {dietType}</li>
-            <li>{t("allergy")}: {allergy}</li>
-          </ul>
-        </section>
+          )}
+          <p>{hasSchool(school) ? school.schoolName : t("no_school_selected")}</p>
+        </div>
+      </section>
 
-        {/* 통계 카드 */}
-        <section className="card stats-card">
-          <div className="card-header">
-            <img src={Vector} alt="" />
-            <h4>{t("my_meal_stats")}</h4>
-          </div>
-          <div className="stats-row">
-            {statsLoading ? (
-              <div>{t("loading")}</div>
-            ) : (
-              <>
-                <div><img src={ok} alt={t("good")} /> {goodPct}%</div>
-                <div><img src={warn} alt={t("caution")} /> {cautionPct}%</div>
-                <div><img src={no} alt={t("excluded")} /> {excludePct}%</div>
-              </>
-            )}
-          </div>
-          <button className="detail-btn" onClick={() => navigate("/week")}>{t("see_details")}</button>
-        </section>
+      <section className="profile-stat-grid">
+        <div>
+          <span>{t("possible_meals")}</span>
+          <strong>{statsLoading ? "-" : `${safeRate}%`}</strong>
+        </div>
+        <div>
+          <span>{t("caution")}</span>
+          <strong>{statsLoading ? "-" : stats.caution}</strong>
+        </div>
+        <div>
+          <span>{t("excluded")}</span>
+          <strong>{statsLoading ? "-" : stats.excluded}</strong>
+        </div>
+      </section>
 
-        {/* 언어 설정 */}
-        <section className="card simple-card">
-          <div className="row" style={{ position: "relative" }}>
-            <img src={lang} alt={t("language")} />
-            <span>{t("language_setting")}</span>
-            <span className="value">
-              {i18n.language === "ko" ? "한국어" : i18n.language === "en" ? "English" : i18n.language}
-            </span>
-            <button
-              className="edit-btn"
-              onClick={() => setShowLangSelect((v) => !v)}
-              style={{ minWidth: 48 }}
-            >
-              {t("change")}
-            </button>
-
-            {/* 드롭다운 언어 선택 메뉴 */}
-            {showLangSelect && (
-              <div style={{
-                position: "absolute", top: 36, right: 0, background: "#fff", border: "1px solid #ddd",
-                borderRadius: 8, zIndex: 20, boxShadow: "0 4px 12px #0002"
-              }}>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-                  <li>
-                    <button style={{ width: "100%", padding: "10px 20px", background: "none", border: "none", textAlign: "left" }}
-                      onClick={() => { i18n.changeLanguage("ko"); setShowLangSelect(false); }}>
-                      한국어
-                    </button>
-                  </li>
-                  <li>
-                    <button style={{ width: "100%", padding: "10px 20px", background: "none", border: "none", textAlign: "left" }}
-                      onClick={() => { i18n.changeLanguage("en"); setShowLangSelect(false); }}>
-                      English
-                    </button>
-                  </li>
-                  <li>
-                    <button style={{ width: "100%", padding: "10px 20px", background: "none", border: "none", textAlign: "left" }}
-                      onClick={() => { i18n.changeLanguage("zh"); setShowLangSelect(false); }}>
-                      中文
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-
+      <section className="profile-section">
+        <div className="profile-section-heading">
+          <ShieldCheck size={18} />
+          <h2>{t("account_setting")}</h2>
+        </div>
+        <div className="credential-list">
+          <div>
+            <span>{t("email")}</span>
+            <strong>{user.email || "-"}</strong>
           </div>
-        </section>
+          <div>
+            <span>{t("password")}</span>
+            <strong>••••••••</strong>
+            <button type="button" onClick={requestPasswordReset}>{t("reset_password")}</button>
+          </div>
+        </div>
+        {passwordMessage && <p className="profile-message">{passwordMessage}</p>}
+      </section>
 
-        {/* 알림 설정 */}
-        <section className="card simple-card">
-          <div className="row">
-            <img src={bell} alt={t("notification")} />
-            <span>{t("notification_setting")}</span>
-            <span className="value on">ON</span>
-          </div>
-          <ul className="notif-list">
-            <li>
-              <label>
-                <input type="checkbox" defaultChecked /> {t("meal_change_notification")}
-              </label>
-            </li>
-            <li>
-              <label>
-                <input type="checkbox" defaultChecked /> {t("feedback_request_notification")}
-              </label>
-            </li>
-          </ul>
-        </section>
+      <section className="profile-section">
+        <div className="profile-section-heading">
+          <Utensils size={18} />
+          <h2>{t("meal_filter")}</h2>
+        </div>
+        <div className="profile-filter-list">
+          <div><span>{t("dietType")}</span><strong>{userData?.dietType || t("none")}</strong></div>
+          <div><span>{t("religion")}</span><strong>{religionText}</strong></div>
+          <div><span>{t("allergy")}</span><strong>{allergyText}</strong></div>
+        </div>
+      </section>
 
-        {/* 계정 설정 */}
-        <section className="card simple-card">
-          <div className="row">
-            <img src={lock} alt={t("account")} />
-            <span>{t("account_setting")}</span>
+      <section className="profile-section action-list">
+        <button type="button" onClick={() => navigate("/week")}>
+          <ShieldCheck size={18} />
+          <span>{t("weekly_report")}</span>
+          <ChevronRight size={18} />
+        </button>
+        <button type="button" onClick={() => setLanguageOpen((open) => !open)}>
+          <Languages size={18} />
+          <span>{t("language_setting")}</span>
+          <em>{i18n.language === "ko" ? "한국어" : i18n.language === "en" ? "English" : "中文"}</em>
+        </button>
+        {languageOpen && (
+          <div className="language-picker">
+            {[
+              { code: "ko", label: "한국어" },
+              { code: "en", label: "English" },
+              { code: "zh", label: "中文" }
+            ].map((language) => (
+              <button
+                key={language.code}
+                type="button"
+                className={i18n.language === language.code ? "selected" : ""}
+                onClick={() => {
+                  i18n.changeLanguage(language.code);
+                  setLanguageOpen(false);
+                }}
+              >
+                {language.label}
+              </button>
+            ))}
           </div>
-          <div className="btn-group">
-            <button className="logout-btn" onClick={handleLogout}>{t("logout")}</button>
-            <button className="privacy-btn" onClick={() => navigate("/privacy")}>{t("privacy_policy")}</button>
+        )}
+        <button type="button" onClick={() => setNotificationsOpen((open) => !open)}>
+          <Bell size={18} />
+          <span>{t("notification_setting")}</span>
+          <em>{notificationsOpen ? t("close") : "ON"}</em>
+        </button>
+        {notificationsOpen && (
+          <div className="notification-panel">
+            <label>
+              <input type="checkbox" defaultChecked />
+              {t("meal_change_notification")}
+            </label>
+            <label>
+              <input type="checkbox" defaultChecked />
+              {t("feedback_request_notification")}
+            </label>
           </div>
-        </section>
-      </div>
-    </div>
+        )}
+      </section>
+
+      <section className="profile-section account-actions">
+        <button type="button" onClick={() => navigate("/privacy")}>{t("privacy_policy")}</button>
+        <button type="button" className="danger" onClick={logout}>
+          <LogOut size={17} />
+          {t("logout")}
+        </button>
+      </section>
+    </main>
   );
 };
 

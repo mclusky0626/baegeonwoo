@@ -34,6 +34,18 @@ export function hasSchool(school = {}) {
   return Boolean(school.eduCode && school.schoolCode);
 }
 
+export function getSchoolLogoUrl(school = {}) {
+  const homepage = school.homepage || school.schoolHomepage;
+  if (!homepage) return "";
+
+  try {
+    const url = new URL(homepage.startsWith("http") ? homepage : `https://${homepage}`);
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(url.hostname)}&sz=128`;
+  } catch {
+    return "";
+  }
+}
+
 export function getSchoolInitials(name = "") {
   const compact = name
     .replace(/고등학교|중학교|초등학교|학교/g, "")

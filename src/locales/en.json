@@ -161,5 +161,16 @@
   "go_settings": "Go to Settings",
   "selected_day_detail": "Selected day detail",
   "risk_summary": "Risk summary",
-  "risk_count_unit": " risks"
+  "risk_count_unit": " risks",
+  "onboarding_kicker": "Multicultural meal assistant",
+  "onboarding_title": "Check what you can eat before lunch starts.",
+  "onboarding_point_meal": "School meal view",
+  "onboarding_point_meal_desc": "Only the meals your school serves appear as tabs.",
+  "onboarding_point_filter": "Personal rules",
+  "onboarding_point_filter_desc": "Allergy, religion, and diet rules are applied together.",
+  "onboarding_point_report": "Weekly summary",
+  "onboarding_point_report_desc": "Scan daily risk with clear charts.",
+  "continue_without_login": "Explore first",
+  "reset_password": "Reset",
+  "password_reset_sent": "Password reset email sent."
 }
