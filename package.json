@@ -11,6 +11,7 @@
     "@capacitor/android": "^7.4.1",
     "@capacitor/cli": "^7.4.1",
     "@capacitor/core": "^7.4.1",
+    "@capacitor/push-notifications": "^7.0.6",
     "@types/react-router-dom": "^5.3.3",
     "date-fns": "^4.1.0",
     "firebase": "^11.8.1",
@@ -36,6 +37,9 @@
     "vercel-build": "npm ci && npm run build",
     "dev": "node node_modules/vite/bin/vite.js",
     "build": "node node_modules/vite/bin/vite.js build",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
     "preview": "node node_modules/vite/bin/vite.js preview"
   },
   "browserslist": [

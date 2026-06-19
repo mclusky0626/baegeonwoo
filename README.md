@@ -18,7 +18,7 @@ Dagub는 학교 급식 데이터를 개인의 알레르기, 종교, 식생활 �
 - NEIS 알레르기 코드 19종 기준 알레르기 판정
 - 종교 및 식생활 유형 기반 제외 판정
 - 주간 급식 리포트
-- FCM 서비스워커 기반 푸시 알림 준비
+- 웹 FCM 서비스워커 및 Android 네이티브 FCM 푸시 알림 준비
 
 ## 데이터 기준
 
@@ -121,15 +121,22 @@ git rm --cached android/app/google-services.json
 
 ## Android 빌드
 
+Android 앱은 Capacitor 프로젝트를 Android Studio에서 여는 방식으로 빌드합니다. Firebase Console에 등록한 Android 앱의 패키지명은 `com.mclusky.dagub`와 일치해야 하며, `google-services.json`은 `android/app/google-services.json` 위치에 둡니다.
+
 웹 빌드를 만든 뒤 Capacitor Android 프로젝트에 동기화합니다.
 
 ```bash
-npm run build
-npx cap sync android
-npx cap open android
+npm run android:sync
+npm run android:open
 ```
 
-Android Studio에서 Firebase Google Services 파일과 패키지명을 확인한 뒤 빌드합니다.
+터미널에서 Debug APK까지 확인하려면 Android SDK와 호환되는 JDK가 필요합니다. macOS에서 Android Studio 내장 JDK를 사용할 경우 다음 명령으로 확인할 수 있습니다.
+
+```bash
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" npm run android:build
+```
+
+Android 13 이상에서는 알림 권한 요청이 필요합니다. 앱은 로그인 후 Capacitor Push Notifications를 통해 권한을 확인하고, 발급된 FCM 토큰을 Firestore 사용자 문서의 `fcmTokens`와 `nativeFcmTokens`에 저장합니다. 웹 실행 환경에서는 기존 서비스워커 기반 FCM 흐름을 유지합니다.
 
 ## 다음 작업 후보
 

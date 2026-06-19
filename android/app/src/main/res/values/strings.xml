@@ -4,4 +4,5 @@
     <string name="title_activity_main">dagub</string>
     <string name="package_name">com.mclusky.dagub</string>
     <string name="custom_url_scheme">com.mclusky.dagub</string>
+    <string name="default_notification_channel_id">meal_updates</string>
 </resources>

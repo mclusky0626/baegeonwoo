@@ -1,22 +1,18 @@
 
 plugins {
     id 'com.android.application'
-    id 'kotlin-android' // (Kotlin 사용하는 경우)
+    id 'kotlin-android'
 }
-// Move the plugins block to the top
-
 
 android {
     namespace "com.mclusky.dagub"
 
-    // ✅ 버전 직접 명시
-    compileSdkVersion 34
-    compileSdkVersion 35
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
     defaultConfig {
         applicationId "com.mclusky.dagub"
-        minSdkVersion 23
-        targetSdkVersion 34
-        targetSdkVersion 35
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -55,7 +51,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:1.1.5"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
     implementation "androidx.core:core-splashscreen:1.0.1"
-    // ✅ Firebase 연동
     implementation platform('com.google.firebase:firebase-bom:33.16.0')
     implementation 'com.google.firebase:firebase-messaging'
     // implementation 'com.google.firebase:firebase-analytics'  // 필요 시 주석 해제
@@ -63,16 +58,9 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-// ✅ Firebase Push용 플러그인 적용 (존재할 때만)
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.exists()) {
-        // If you are using the plugins {} block, it's generally recommended
-        // to declare plugins there. However, conditional application like this
-        // is a bit different. If you still want to apply it conditionally,
-        // this legacy way might be necessary.
-        // If 'com.google.gms.google-services' is always needed,
-        // add it to the plugins {} block at the top and remove this try-catch.
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {

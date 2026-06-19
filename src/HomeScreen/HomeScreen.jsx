@@ -1,5 +1,5 @@
 import "./HomeScreen.css";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-datepicker";
@@ -30,6 +30,10 @@ import {
   retrieveToken,
   showLocalNotification
 } from "../messaging";
+import {
+  isNativePushAvailable,
+  registerNativePushNotifications
+} from "../nativeNotifications";
 
 const DEFAULT_PREFERENCES = {
   allergies: [],
@@ -59,6 +63,7 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
   const [loginError, setLoginError] = useState("");
   const [showLogin, setShowLogin] = useState(forceLogin);
   const [loginTab, setLoginTab] = useState("login");
+  const nativeTokenUserRef = useRef("");
   const [showOnboarding, setShowOnboarding] = useState(() => {
     if (forceLogin || typeof window === "undefined") return false;
     return window.localStorage.getItem(ONBOARDING_KEY) !== "seen";
@@ -106,6 +111,12 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
 
     fetchUserSettings();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !isNativePushAvailable() || nativeTokenUserRef.current === user.uid) return;
+    nativeTokenUserRef.current = user.uid;
+    saveNotificationToken(user, false);
+  }, [user?.uid]);
 
   useEffect(() => {
     async function fetchMeals() {
@@ -156,10 +167,26 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
 
   const availableMealNames = mealGroups.map((meal) => meal.name).join(" · ");
 
-  async function saveNotificationToken(currentUser) {
-    if (!currentUser || !("Notification" in window)) return;
+  async function saveNotificationToken(currentUser, notifyLogin = true) {
+    if (!currentUser) return;
 
     try {
+      if (isNativePushAvailable()) {
+        const token = await registerNativePushNotifications(currentUser);
+        if (!token) return;
+
+        if (notifyLogin) {
+          try {
+            await sendLoginNotification({ token });
+          } catch (sendError) {
+            console.warn("네이티브 로그인 푸시 알림 전송 실패:", sendError);
+          }
+        }
+        return;
+      }
+
+      if (!("Notification" in window)) return;
+
       let token = getCurrentToken();
       if (!token && window.swRegistration) {
         await requestNotificationPermission();
@@ -173,10 +200,12 @@ export const HomeScreen = ({ className = "", forceLogin = false }) => {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      try {
-        await sendLoginNotification({ token });
-      } catch (sendError) {
-        console.warn("로그인 푸시 알림 전송 실패:", sendError);
+      if (notifyLogin) {
+        try {
+          await sendLoginNotification({ token });
+        } catch (sendError) {
+          console.warn("로그인 푸시 알림 전송 실패:", sendError);
+        }
       }
     } catch (error) {
       console.warn("알림 토큰 설정을 건너뜁니다:", error);
